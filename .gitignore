@@ -19,3 +19,15 @@ Thumbs.db
 # Secrets
 .env
 credentials.json
+
+# Sponsor data (Snowflake Marketplace — 배포/공유/게시 금지)
+# 해커톤 종료 후 삭제 필수
+*.csv
+*.parquet
+*.avro
+data/
+sponsor_data/
+raw_data/
+
+# Submission ZIP (regenerate with: zip -r MoveSignal_AI_Submission.zip submission/)
+MoveSignal_AI_Submission.zip
