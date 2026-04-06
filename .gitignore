@@ -1,0 +1,21 @@
+# Node
+node_modules/
+package-lock.json
+
+# Generated files
+.generated/
+
+# Archives
+archive/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Secrets
+.env
+credentials.json
