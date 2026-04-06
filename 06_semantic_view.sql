@@ -12,8 +12,8 @@
 -- ============================================================
 -- 0. Session Setup
 -- ============================================================
-USE ROLE SYSADMIN;
-USE WAREHOUSE MOVESIGNAL_WH;
+USE ROLE ACCOUNTADMIN;
+USE WAREHOUSE COMPUTE_WH;
 USE DATABASE MOVESIGNAL_AI;
 USE SCHEMA ANALYTICS;
 
@@ -477,7 +477,7 @@ CREATE OR REPLACE SEMANTIC VIEW MOVESIGNAL_SV
 -- 2. Grant Usage (adjust roles as needed)
 -- ============================================================
 GRANT SELECT ON SEMANTIC VIEW MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SV
-  TO ROLE SYSADMIN;
+  TO ROLE ACCOUNTADMIN;
 
 -- Optional: grant to analyst / application roles
 -- GRANT SELECT ON SEMANTIC VIEW MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SV

@@ -25,7 +25,7 @@ CREATE OR REPLACE TABLE POLICY_DOCUMENTS (
     DOC_ID        VARCHAR(20)   NOT NULL,
     TITLE         VARCHAR(200)  NOT NULL,
     CATEGORY      VARCHAR(30)   NOT NULL,   -- rental_policy | marketing_rule | public_admin | product_guide | cs_policy
-    CONTENT       VARCHAR(4000) NOT NULL,
+    CONTENT       VARCHAR(8000) NOT NULL,
     DISTRICT      VARCHAR(20),              -- NULL = company-wide
     UPDATED_AT    TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
     CONSTRAINT PK_POLICY_DOCUMENTS PRIMARY KEY (DOC_ID)

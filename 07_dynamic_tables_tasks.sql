@@ -85,7 +85,7 @@ SELECT
         OVER ()                         AS ALLOCATION_PCT,
     RANK() OVER (
         ORDER BY AVG(FORECAST) DESC
-    )                                   AS RANK
+    )                                   AS FORECAST_RANK
 FROM FORECAST_RESULTS
 GROUP BY SERIES;
 

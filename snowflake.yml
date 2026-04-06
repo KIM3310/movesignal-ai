@@ -1,0 +1,7 @@
+definition_version: 1.1
+streamlit:
+  name: MOVESIGNAL_APP
+  stage: STREAMLIT_STAGE
+  query_warehouse: COMPUTE_WH
+  main_file: streamlit_app_v7.py
+  title: "MoveSignal AI v7"
