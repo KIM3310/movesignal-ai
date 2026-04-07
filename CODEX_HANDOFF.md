@@ -1,6 +1,6 @@
 # MoveSignal AI — Codex Handoff Document
 > Snowflake Hackathon Project: 서초·영등포·중구 렌탈/마케팅 배분 의사결정 엔진
-> Last updated: 2026-04-05 15:00 KST
+> Last updated: 2026-04-07 KST
 
 ---
 
@@ -26,10 +26,14 @@
 
 ### Streamlit 앱 현재 상태
 - URL: `https://app.snowflake.com/ligiqmy/mm49381/#/streamlit-apps/MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_APP`
-- 3개 탭: Allocation | Analysis | AI
+- **5개 탭**: Allocation | Analysis | AI Agent | Simulation | Ops/Trust
+- 버전: **streamlit_app_v7.py** (1,142줄)
 - 배분: 서초구 16% / 영등포구 17% / 중구 67% (따옴표 제거 완료)
 - Actual vs Forecast 시계열 차트 정상
 - Cortex LLM: mistral-large2 한국어 완벽 작동 확인
+- Ablation Study A→E 차트 + 평가 지표 (MAPE/SMAPE/MAE)
+- What-if 시뮬레이션 + AI 코멘트
+- V_APP_HEALTH 운영 모니터링 패널
 
 ### 확인된 데이터 매핑
 - SPH: `CITY_KOR_NAME` = 구 이름 (서초구/영등포구/중구), `DISTRICT_KOR_NAME` = 동 이름
@@ -41,65 +45,20 @@
 
 ## 2. 남은 작업
 
-### 2-1. Streamlit 앱 한국어 풀버전 업그레이드 (선택)
-현재 스테이지에 올라간 코드는 영문 미니멀 버전 (UPLOAD_APP2 프로시저로 생성).
-로컬에 `streamlit_app_v3.py` (337줄) 한국어 풀버전이 준비되어 있음.
-
-**풀버전 기능:**
-- 사이드바: 예산 입력, 메뉴 라디오 버튼
-- 4개 페이지: 배분 추천 / 지역 분석 / 시뮬레이션 / AI 에이전트
-- 소비 체질 분석 (카테고리별 비율 바 차트)
-- 자산 대비 시세 비율 분석
-- AI 에이전트: 빠른 질문 버튼 + 자유 입력 + 대화 이력
-
-**업그레이드 방법:**
-Snowflake Streamlit 에디터에서 직접 코드를 교체하거나,
-UPLOAD_APP 프로시저를 수정하여 스테이지에 업로드.
-
-> ⚠️ 주의: Snowflake Streamlit 에디터는 자동 들여쓰기가 Python 코드를 깨뜨림.
-> 해결법: Python 프로시저(UPLOAD_APP)로 `session.file.put_stream()`을 사용하여 스테이지에 업로드.
-> 또는 Snowflake SQL에서 `$$` 대신 작은따옴표 + `\n` 줄바꿈으로 한 줄 형식 사용.
-
-### 2-2. ACTUAL_VS_FORECAST 테이블 DISTRICT 따옴표 제거
-FORECAST_RESULTS는 수정 완료. ACTUAL_VS_FORECAST는 아직 남아있을 수 있음.
-```sql
-UPDATE MOVESIGNAL_AI.ANALYTICS.ACTUAL_VS_FORECAST
-SET DISTRICT = REPLACE(DISTRICT, '"', '');
+### 2-1. 데모 영상 녹화 (10분, 한국어, MP4)
+DEMO_SCRIPT.md 참조. 8개 세그먼트:
 ```
-DISTRICT 컬럼이 VARIANT 타입이면:
-```sql
-CREATE OR REPLACE TABLE MOVESIGNAL_AI.ANALYTICS.ACTUAL_VS_FORECAST AS
-SELECT REPLACE(DISTRICT::VARCHAR, '"', '') AS DISTRICT, DS, ACTUAL, FORECAST_VAL
-FROM MOVESIGNAL_AI.ANALYTICS.ACTUAL_VS_FORECAST;
+[0:00-0:40] 문제 정의
+[0:40-1:30] 데이터 소스 설명
+[1:30-3:00] Forecast 검증 (Ablation + 평가 지표)
+[3:00-6:00] 라이브 데모 (5탭 순회)
+[6:00-7:10] Snowflake 아키텍처
+[7:10-8:10] 운영 가능성
+[8:10-9:00] 민간 + 공공 듀얼 유스케이스
+[9:00-10:00] 다음 단계 + 마무리
 ```
 
-### 2-3. 10분 데모 시나리오 준비
-```
-[0:00-1:00] 프로젝트 소개: MoveSignal AI란?
-[1:00-3:00] 데이터 파이프라인: SPH + Richgo + AJD → Feature Mart
-[3:00-5:00] ML Forecast: Snowflake ML FORECAST → 3개월 예측
-[5:00-7:00] Streamlit 앱 라이브 데모: 배분 추천 / 지역 분석
-[7:00-9:00] Cortex AI 에이전트: 한국어 Q&A 라이브
-[9:00-10:00] 운영 비용 / 확장 계획 / Q&A
-```
-
-### 2-4. PPT 제작 (10~15슬라이드)
-1. 표지: MoveSignal AI
-2. 문제 정의: 렌탈/마케팅 예산 배분의 비효율
-3. 해결 방안: 데이터 기반 의사결정 엔진
-4. 아키텍처: SPH + Richgo + AJD → Feature Mart → ML → Streamlit
-5. Feature Mart 설계: 5개 STG 테이블 → 통합
-6. ML Forecast: 모델 학습 및 예측 결과
-7. Streamlit 앱 스크린샷: 배분 추천
-8. Streamlit 앱 스크린샷: 지역 분석
-9. Cortex AI 에이전트 데모
-10. 비용 분석: ~$80/월 (Compute WH + Cortex LLM)
-11. 확장 계획: 전국 확대, 실시간 데이터
-12. 기술 스택 요약
-13. Q&A
-
-### 2-5. 데모 영상 녹화 (선택)
-Streamlit 앱 라이브 데모 + Cortex AI 질문 시연
+### 2-2. 제출본 업로드 (해커톤 플랫폼)
 
 ---
 
@@ -137,14 +96,32 @@ Streamlit 앱 라이브 데모 + Cortex AI 질문 시연
 ## 4. 로컬 파일 구조
 ```
 /Users/dolphin/Downloads/Claude/movesignal-ai/
-├── SESSION_HANDOFF.md          # 최초 핸드오프 문서
+├── README.md                   # 프로젝트 설명 (배지, Prerequisites, Troubleshooting)
 ├── CODEX_HANDOFF.md            # 이 문서
-├── 02_feature_mart_v4.sql      # Feature Mart SQL (최종)
-├── 03_ml_and_cortex_v2.sql     # ML Forecast SQL (최종)
-├── 04_fix_streamlit.sql        # Streamlit 배포 SQL
-├── 05_final_fix.sql            # 따옴표 수정 프로시저
-├── streamlit_app_v3.py         # 풀버전 Streamlit (337줄, 한국어)
-└── deploy_streamlit.py         # Python 배포 스크립트 (SSO 필요)
+├── DEMO_SCRIPT.md              # 10분 데모 스크립트
+├── SUBMISSION_CHECKLIST.md     # 제출 체크리스트
+├── LICENSE                     # MIT License
+│
+├── 02_feature_mart_v4.sql      # Feature Mart SQL
+├── 03_ml_and_cortex_v2.sql     # ML Forecast + Cortex LLM
+├── 06_semantic_view.sql        # Semantic View (Cortex Analyst)
+├── 07_dynamic_tables_tasks.sql # Dynamic Tables + Tasks + V_APP_HEALTH
+├── 08_ajd_integration.sql      # AJD 통신 데이터 통합
+├── 09_cortex_search_agent.sql  # Cortex Search + Agent
+├── 10_external_data.sql        # 4개 외부 데이터 + FEATURE_MART_V2
+├── 11_ablation_study.sql       # Ablation A→E (5 모델 비교)
+│
+├── streamlit_app_v7.py         # 최종 앱 (5탭, 1,142줄, 경쟁용)
+├── snowflake.yml               # Snow CLI 배포 설정
+│
+├── MoveSignal_AI_Hackathon.pptx # 발표 PPT (15슬라이드)
+├── MoveSignal_AI_Submission.zip # 제출용 ZIP
+│
+├── 04_databricks_integration.py    # (Portfolio) Databricks pipeline
+├── 05_databricks_sql_analytics.sql # (Portfolio) Databricks SQL
+├── 06_palantir_foundry_integration.py # (Portfolio) Palantir Foundry
+├── databricks_notebook.py          # (Portfolio) Databricks notebook
+└── generate_pptx.py                # PPT 자동 생성 스크립트
 ```
 
 ---
