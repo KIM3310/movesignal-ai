@@ -991,9 +991,30 @@ with tabs[4]:
     if not health_raw.empty:
         st.dataframe(health_raw, use_container_width=True, hide_index=True)
     else:
-        st.info(
-            "V_APP_HEALTH 뷰를 생성하면 Dynamic Table/Task 상태가 여기에 표시됩니다."
+        # Fallback: query Snowflake metadata directly for live evidence
+        live_health_parts = []
+        dt_health = safe_read(
+            "SELECT NAME, SCHEDULING_STATE, DATA_TIMESTAMP, TARGET_LAG_SEC "
+            "FROM INFORMATION_SCHEMA.DYNAMIC_TABLES "
+            "WHERE SCHEMA_NAME='ANALYTICS' LIMIT 5"
         )
+        if not dt_health.empty:
+            st.markdown("**Dynamic Table 상태**")
+            st.dataframe(dt_health, use_container_width=True, hide_index=True)
+            live_health_parts.append("DT")
+        task_health = safe_read(
+            "SELECT NAME, STATE, SCHEDULE, LAST_COMMITTED_ON "
+            "FROM INFORMATION_SCHEMA.TASK_HISTORY "
+            "WHERE SCHEMA_NAME='ANALYTICS' LIMIT 5"
+        )
+        if not task_health.empty:
+            st.markdown("**Task 실행 이력**")
+            st.dataframe(task_health, use_container_width=True, hide_index=True)
+            live_health_parts.append("Task")
+        if not live_health_parts:
+            st.info(
+                "V_APP_HEALTH 뷰 또는 Dynamic Table/Task가 설정되면 실시간 상태가 표시됩니다."
+            )
         health_cols = st.columns(5)
         health_cols[0].metric("데이터 갱신", "매일 06:00")
         health_cols[1].metric("모델 재학습", "주 1회")
@@ -1051,7 +1072,7 @@ with tabs[4]:
     st.markdown(
         """
 - **Streamlit 실행**: Owner's rights (소유자 권한 + 소유자 Warehouse)
-- **Cortex Analyst**: RBAC 연동 -- Semantic View 접근 권한 기반
+- **Cortex Analyst**: Semantic View 접근 권한 기반 (ACCOUNTADMIN, 커스텀 롤 확장 가능)
 - **Query Tag**: `{"app":"movesignal_ai","version":"v7"}`
 - **데이터 격리**: Marketplace 데이터 -> 내부 STG 테이블 복제 (원본 비노출)
 """
@@ -1062,7 +1083,7 @@ with tabs[4]:
     st.subheader("데이터 거버넌스")
     st.markdown(
         """
-- **Object Tags**: 모든 테이블에 `DATA_CLASSIFICATION`, `PII_FLAG` 태그 적용
+- **Object Tags**: 테이블별 `DATA_CLASSIFICATION`, `PII_FLAG` 태그 적용 가능 (Enterprise 이상)
 - **스폰서 데이터 규칙**: Marketplace 데이터는 재배포 불가, 내부 분석 전용
 - **외부 데이터 라이선스**: 각 소스별 이용 약관 준수 (아래 표 참조)
 """

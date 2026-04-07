@@ -170,8 +170,8 @@ streamlit_app_v7.py
 ## Key Differentiators
 
 - **Ablation Study**: Sponsor-only → +Holiday → +Age → +Tourism → +Commercial, MAPE 개선 정량화
-- **Evidence Chain**: Forecast metrics → Feature importance → Search-grounded rules → Structured action
-- **Dual Use**: 민간 (렌탈/마케팅 배분) + 공공 (상권 활성화/행정 배분)
+- **AI Toolkit**: Forecast metrics + Feature importance + Search-grounded policy + Structured output — 하나의 앱에서 통합 제공
+- **Dual Use Case**: 동일 데이터/모델로 민간 (렌탈/마케팅 배분)과 공공 (상권 활성화/행정 배분) 모두 적용 가능
 - **Production-Ready**: Dynamic Tables (1h lag) + Tasks (daily/weekly) + Health monitoring
 
 ## Cost
