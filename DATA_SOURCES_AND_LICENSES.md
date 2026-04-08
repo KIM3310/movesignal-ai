@@ -1,4 +1,4 @@
-# MoveSignal AI — 데이터 출처 및 라이선스
+# DistrictPilot AI — 데이터 출처 및 라이선스
 
 ## 스폰서 데이터 (Snowflake Marketplace)
 

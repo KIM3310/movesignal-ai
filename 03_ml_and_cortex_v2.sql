@@ -1,10 +1,10 @@
 -- ============================================================
--- MoveSignal AI: ML Forecast + Cortex v2
+-- DistrictPilot AI: ML Forecast + Cortex v2
 -- Feature Mart v4 컬럼명에 맞춤
 -- ============================================================
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE COMPUTE_WH;
-USE DATABASE MOVESIGNAL_AI;
+USE DATABASE DISTRICTPILOT_AI;
 USE SCHEMA ANALYTICS;
 
 -- ============================================================
@@ -32,7 +32,7 @@ FROM FORECAST_INPUT GROUP BY DISTRICT ORDER BY DISTRICT;
 -- ============================================================
 -- 2. Snowflake ML FORECAST 모델 생성
 -- ============================================================
-CREATE OR REPLACE SNOWFLAKE.ML.FORECAST MOVESIGNAL_FORECAST(
+CREATE OR REPLACE SNOWFLAKE.ML.FORECAST DISTRICTPILOT_FORECAST(
     INPUT_DATA => SYSTEM$REFERENCE('TABLE', 'FORECAST_INPUT'),
     TIMESTAMP_COLNAME => 'DS',
     TARGET_COLNAME => 'Y',
@@ -42,7 +42,7 @@ CREATE OR REPLACE SNOWFLAKE.ML.FORECAST MOVESIGNAL_FORECAST(
 -- ============================================================
 -- 3. 예측 실행 (3개월)
 -- ============================================================
-CALL MOVESIGNAL_FORECAST!FORECAST(
+CALL DISTRICTPILOT_FORECAST!FORECAST(
     FORECASTING_PERIODS => 3,
     CONFIG_OBJECT => {'prediction_interval': 0.95}
 );
@@ -55,7 +55,7 @@ SELECT * FROM FORECAST_RESULTS ORDER BY SERIES, TS;
 -- ============================================================
 -- 4. Feature Importance
 -- ============================================================
-CALL MOVESIGNAL_FORECAST!EXPLAIN_FEATURE_IMPORTANCE();
+CALL DISTRICTPILOT_FORECAST!EXPLAIN_FEATURE_IMPORTANCE();
 
 CREATE OR REPLACE TABLE FEATURE_IMPORTANCE AS
 SELECT * FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
@@ -181,7 +181,7 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
 CREATE OR REPLACE TASK DAILY_REFRESH
     WAREHOUSE = COMPUTE_WH
     SCHEDULE = 'USING CRON 0 6 * * * Asia/Seoul'
-    COMMENT = 'MoveSignal AI 일일 데이터 갱신'
+    COMMENT = 'DistrictPilot AI 일일 데이터 갱신'
 AS
     SELECT 'refresh_placeholder';
 

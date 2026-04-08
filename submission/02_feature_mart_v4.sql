@@ -1,10 +1,10 @@
 -- ============================================================
--- MoveSignal AI: Feature Mart v4 (확인된 실제 값 기반)
+-- DistrictPilot AI: Feature Mart v4 (확인된 실제 값 기반)
 -- SGG='서초구' | REGION_LEVEL='sgg' | MOVEMENT_TYPE='전입'/'전출'
 -- ============================================================
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE COMPUTE_WH;
-USE DATABASE MOVESIGNAL_AI;
+USE DATABASE DISTRICTPILOT_AI;
 USE SCHEMA ANALYTICS;
 
 -- ============================================================

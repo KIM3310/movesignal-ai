@@ -1,4 +1,4 @@
-"""Generate MoveSignal AI Hackathon PPT (15 slides, dark navy theme)"""
+"""Generate DistrictPilot AI Hackathon PPT (15 slides, dark navy theme)"""
 from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
@@ -102,7 +102,7 @@ def add_table_slide(slide, headers, rows, x, y, w, row_h=0.45):
 s = prs.slides.add_slide(BLANK)
 add_bg(s, DARK_NAVY)
 add_rect(s, 0, 0, 13.333, 0.08, ACCENT)
-add_text(s, "MoveSignal AI", 0.8, 1.8, 11.5, 1.5, size=54, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+add_text(s, "DistrictPilot AI", 0.8, 1.8, 11.5, 1.5, size=54, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
 add_text(s, "Snowflake-Native Decision Agent", 0.8, 3.2, 11.5, 0.8, size=28, color=ACCENT, align=PP_ALIGN.CENTER)
 add_text(s, "서초 · 영등포 · 중구  렌탈/마케팅 배분 의사결정 에이전트", 0.8, 4.1, 11.5, 0.6, size=18, color=ICE_BLUE, align=PP_ALIGN.CENTER)
 add_text(s, "Snowflake Korea Hackathon 2026  |  Tech Track", 0.8, 5.2, 11.5, 0.5, size=14, color=LIGHT_GRAY, align=PP_ALIGN.CENTER)
@@ -122,7 +122,7 @@ add_multiline(s, [
     "결과: 과투자/미투자, ROI 측정 불가, 리스크 사각지대",
 ], 0.8, 3.5, 7, 2, size=17, color=ICE_BLUE)
 add_rect(s, 9, 1.5, 3.5, 4.5, RGBColor(0x22, 0x2D, 0x5E))
-add_text(s, "MoveSignal AI", 9.2, 1.8, 3.1, 0.5, size=18, bold=True, color=ACCENT)
+add_text(s, "DistrictPilot AI", 9.2, 1.8, 3.1, 0.5, size=18, bold=True, color=ACCENT)
 add_multiline(s, [
     "데이터 기반 배분",
     "AI 근거 제시",
@@ -280,7 +280,7 @@ add_bg(s, NAVY)
 add_rect(s, 0, 0, 0.08, 7.5, ACCENT)
 add_text(s, "Snowflake Expertise", 0.5, 0.4, 8, 0.6, size=36, bold=True, color=ACCENT)
 features = [
-    ("Semantic View", "MOVESIGNAL_SV — 비즈니스 메트릭/차원/관계 정의, AI 지침 포함"),
+    ("Semantic View", "DISTRICTPILOT_SV — 비즈니스 메트릭/차원/관계 정의, AI 지침 포함"),
     ("Cortex Analyst", "Semantic View 기반 정확한 SQL 생성, RBAC 연동"),
     ("Cortex Search", "정책/룰북 하이브리드 검색 (벡터 + 키워드)"),
     ("AI_COMPLETE", "Structured output (JSON schema) + bind params + guardrails"),
@@ -308,7 +308,7 @@ add_table_slide(s, ["Component", "Type", "Status"], [
     ["TASK_REFRESH_PIPELINE", "Task", "Daily 06:00 KST"],
     ["TASK_RETRAIN_FORECAST", "Task", "Weekly Mon 07:00"],
     ["V_APP_HEALTH", "View", "Real-time monitoring"],
-    ["MOVESIGNAL_FORECAST_V2", "ML Model", "Ablation E (production)"],
+    ["DISTRICTPILOT_FORECAST_V2", "ML Model", "Ablation E (production)"],
 ], 0.5, 1.3, 7.5)
 add_rect(s, 8.5, 1.3, 4, 5.2, RGBColor(0x22, 0x2D, 0x5E))
 add_text(s, "Security Model", 8.7, 1.5, 3.6, 0.4, size=16, bold=True, color=ACCENT)
@@ -404,9 +404,9 @@ add_text(s, "Tech Stack", 0.5, 0.4, 5, 0.6, size=36, bold=True, color=ACCENT)
 add_table_slide(s, ["Object", "Type", "Role"], [
     ["FEATURE_MART_V2", "Table", "확장 Feature Mart (50+ features)"],
     ["DT_FEATURE_MART", "Dynamic Table", "자동 갱신 (1h lag)"],
-    ["MOVESIGNAL_FORECAST_V2", "ML Model", "Ablation E (production)"],
-    ["MOVESIGNAL_SV", "Semantic View", "Cortex Analyst용 메트릭 정의"],
-    ["MOVESIGNAL_SEARCH_SVC", "Cortex Search", "정책/룰북 검색"],
+    ["DISTRICTPILOT_FORECAST_V2", "ML Model", "Ablation E (production)"],
+    ["DISTRICTPILOT_SV", "Semantic View", "Cortex Analyst용 메트릭 정의"],
+    ["DISTRICTPILOT_SEARCH_SVC", "Cortex Search", "정책/룰북 검색"],
     ["ABLATION_RESULTS", "Table", "5 모델 MAPE/SMAPE/MAE"],
     ["V_ABLATION_SUMMARY", "View", "Ablation 개선율 요약"],
     ["TASK_REFRESH_PIPELINE", "Task", "매일 06:00 KST"],
@@ -416,18 +416,47 @@ add_table_slide(s, ["Object", "Type", "Role"], [
 ], 0.5, 1.1, 12)
 
 # ═══════════════════════════════════════
-# Slide 15: Q&A
+# Slide 15: Evidence Chain
+# ═══════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+add_bg(s, NAVY)
+add_rect(s, 0, 0, 0.08, 7.5, ACCENT)
+add_text(s, "Evidence Chain", 0.5, 0.4, 8, 0.6, size=36, bold=True, color=ACCENT)
+add_text(s, "의사결정의 6단계 증거 — 모두 Snowflake-native", 0.5, 1.0, 10, 0.5, size=18, color=ICE_BLUE)
+
+chain_steps = [
+    ("1", "Forecast", "ML FORECAST", "3구 x 3개월, MAPE<10%, 95% CI"),
+    ("2", "Feature Importance", "EXPLAIN_FEATURE_IMPORTANCE()", "Top-5 기여도 + ablation 개선 증명"),
+    ("3", "Semantic View", "DISTRICTPILOT_SV", "VQR 10개, SQL규칙 13개, synonym 100+"),
+    ("4", "Search Grounding", "CORTEX.SEARCH()", "외부 컨텍스트 근거, hallucination 방지"),
+    ("5", "Structured Output", "AI_COMPLETE", "JSON action card + confidence score"),
+    ("6", "Refresh State", "DT_REFRESH_HISTORY", "LAG_SEC, 갱신 이력, query_tag 감사"),
+]
+for i, (num, title, obj, desc) in enumerate(chain_steps):
+    y = 1.7 + i * 0.85
+    add_rect(s, 0.5, y, 12, 0.75, RGBColor(0x22, 0x2D, 0x5E))
+    add_rect(s, 0.5, y, 0.06, 0.75, ACCENT)
+    # Circle number
+    add_text(s, num, 0.7, y + 0.08, 0.5, 0.5, size=20, bold=True, color=ACCENT)
+    add_text(s, title, 1.3, y + 0.08, 2.5, 0.35, size=15, bold=True, color=WHITE)
+    add_text(s, obj, 4.0, y + 0.08, 3.5, 0.35, size=12, color=GREEN)
+    add_text(s, desc, 7.5, y + 0.08, 5, 0.6, size=12, color=ICE_BLUE)
+
+add_text(s, "모든 단계가 Snowflake 안에서 완결 — 데이터가 밖으로 나가지 않습니다", 0.5, 6.8, 12, 0.4, size=14, bold=True, color=ORANGE)
+
+# ═══════════════════════════════════════
+# Slide 16: Q&A
 # ═══════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 add_bg(s, DARK_NAVY)
 add_rect(s, 0, 0, 13.333, 0.08, ACCENT)
 add_text(s, "감사합니다", 0.5, 2.0, 12.3, 1.5, size=54, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
-add_text(s, "MoveSignal AI — Snowflake-Native Decision Agent", 0.5, 3.5, 12.3, 0.8, size=22, color=ACCENT, align=PP_ALIGN.CENTER)
+add_text(s, "DistrictPilot AI — Snowflake-Native Decision Agent", 0.5, 3.5, 12.3, 0.8, size=22, color=ACCENT, align=PP_ALIGN.CENTER)
 add_text(s, "Doeon Kim  |  github.com/KIM3310", 0.5, 4.8, 12.3, 0.5, size=16, color=ICE_BLUE, align=PP_ALIGN.CENTER)
 add_text(s, "Q & A", 0.5, 5.8, 12.3, 0.8, size=36, bold=True, color=LIGHT_GRAY, align=PP_ALIGN.CENTER)
 
 # Save
-outpath = "/Users/dolphin/Downloads/Claude/movesignal-ai/MoveSignal_AI_Hackathon.pptx"
+outpath = "/Users/dolphin/Downloads/Claude/movesignal-ai/DistrictPilot_AI_Hackathon.pptx"
 prs.save(outpath)
 print(f"Saved to {outpath}")
 print(f"Slides: {len(prs.slides)}")

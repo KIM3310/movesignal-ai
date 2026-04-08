@@ -1,5 +1,5 @@
 -- ============================================================
--- MoveSignal AI: External Public Data Integration (10_external_data.sql)
+-- DistrictPilot AI: External Public Data Integration (10_external_data.sql)
 -- 4 External Sources + Extended Feature Mart + Forecast Input
 -- Target Districts: 서초구, 영등포구, 중구
 -- Time Range: 2021-01 ~ 2025-12 (60 months)
@@ -10,7 +10,7 @@
 -- ============================================================
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE COMPUTE_WH;
-USE DATABASE MOVESIGNAL_AI;
+USE DATABASE DISTRICTPILOT_AI;
 USE SCHEMA ANALYTICS;
 
 -- ============================================================

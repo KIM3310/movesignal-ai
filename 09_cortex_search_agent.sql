@@ -1,5 +1,5 @@
 /*=============================================================================
-  MoveSignal AI - Cortex Search Service & Cortex Agent
+  DistrictPilot AI - Cortex Search Service & Cortex Agent
   09_cortex_search_agent.sql
 
   Purpose: Stand up a Cortex Search service over internal policy/rulebook
@@ -7,7 +7,7 @@
            and a custom tool via the Cortex Agent API.
 
   Target Districts: 서초구, 영등포구, 중구
-  Schema: MOVESIGNAL_AI.ANALYTICS
+  Schema: DISTRICTPILOT_AI.ANALYTICS
 =============================================================================*/
 
 -- ============================================================
@@ -15,7 +15,7 @@
 -- ============================================================
 USE ROLE SYSADMIN;
 USE WAREHOUSE COMPUTE_WH;
-USE DATABASE MOVESIGNAL_AI;
+USE DATABASE DISTRICTPILOT_AI;
 USE SCHEMA ANALYTICS;
 
 -- ============================================================
@@ -68,7 +68,7 @@ VALUES
 2. 대상: 서초구 소재 사업장 중 연매출 3억 원 이하 사업체.
 3. 지원 금액: 업체당 최대 500만 원 (마케팅비, 인테리어비, 컨설팅비 포함).
 4. 신청 방법: 서초구청 경제과 온라인 접수 → 현장 실사 → 심사위원회 → 확정 통보.
-5. MoveSignal 활용: 상권 분석 데이터 기반으로 보조금 신청서 내 시장 분석 항목을 자동 생성.',
+5. DistrictPilot 활용: 상권 분석 데이터 기반으로 보조금 신청서 내 시장 분석 항목을 자동 생성.',
  '서초구'),
 
 -- 2-4. 영등포구 소상공인 지원금 우선순위 기준
@@ -126,7 +126,7 @@ ORDER BY DOC_ID;
 -- ============================================================
 -- 3. Cortex Search Service
 -- ============================================================
-CREATE OR REPLACE CORTEX SEARCH SERVICE MOVESIGNAL_SEARCH_SVC
+CREATE OR REPLACE CORTEX SEARCH SERVICE DISTRICTPILOT_SEARCH_SVC
   ON CONTENT
   ATTRIBUTES TITLE, CATEGORY, DISTRICT
   WAREHOUSE = COMPUTE_WH
@@ -208,7 +208,7 @@ CALL RECOMMEND_ALLOCATION('서초구', 50000000);
 -- 5-1. Agent call via SNOWFLAKE.CORTEX.COMPLETE() with tool definitions
 -- This pattern can be wrapped in a stored procedure or called directly.
 
-CREATE OR REPLACE PROCEDURE MOVESIGNAL_AGENT(
+CREATE OR REPLACE PROCEDURE DISTRICTPILOT_AGENT(
     P_USER_QUESTION VARCHAR
 )
 RETURNS VARIANT
@@ -224,7 +224,7 @@ BEGIN
     v_messages := '[
         {
             "role": "system",
-            "content": "You are MoveSignal AI Agent, an expert assistant for rental business analytics in Seoul districts (서초구, 영등포구, 중구). You can: (1) query structured data via Cortex Analyst on the MOVESIGNAL_SV semantic view, (2) look up internal policies and rulebooks via Cortex Search, and (3) generate budget allocation recommendations. Always answer in Korean unless asked otherwise."
+            "content": "You are DistrictPilot AI Agent, an expert assistant for rental business analytics in Seoul districts (서초구, 영등포구, 중구). You can: (1) query structured data via Cortex Analyst on the DISTRICTPILOT_SV semantic view, (2) look up internal policies and rulebooks via Cortex Search, and (3) generate budget allocation recommendations. Always answer in Korean unless asked otherwise."
         },
         {
             "role": "user",
@@ -238,8 +238,8 @@ BEGIN
             "type": "cortex_analyst_text_to_sql",
             "tool_definition": {
                 "name": "analyst",
-                "description": "Translate natural language questions into SQL queries against the MoveSignal semantic view. Use for any question about sales, population, migration, forecasts, or district-level KPIs.",
-                "semantic_view": "MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SV"
+                "description": "Translate natural language questions into SQL queries against the DistrictPilot semantic view. Use for any question about sales, population, migration, forecasts, or district-level KPIs.",
+                "semantic_view": "DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_SV"
             }
         },
         {
@@ -247,7 +247,7 @@ BEGIN
             "tool_definition": {
                 "name": "policy_search",
                 "description": "Search internal policy documents, rulebooks, and guidelines. Use for questions about rental policies, marketing rules, public administration support, product pricing, or customer service escalation procedures.",
-                "cortex_search_service": "MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SEARCH_SVC",
+                "cortex_search_service": "DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_SEARCH_SVC",
                 "max_results": 3,
                 "title_column": "TITLE",
                 "id_column": "DOC_ID"
@@ -298,7 +298,7 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
     [
         {
             'role': 'system',
-            'content': 'You are MoveSignal AI Agent. Use the provided tools to answer questions about rental business analytics and internal policies for Seoul districts.'
+            'content': 'You are DistrictPilot AI Agent. Use the provided tools to answer questions about rental business analytics and internal policies for Seoul districts.'
         },
         {
             'role': 'user',
@@ -311,14 +311,14 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
                 'type': 'cortex_analyst_text_to_sql',
                 'tool_definition': {
                     'name': 'analyst',
-                    'semantic_view': 'MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SV'
+                    'semantic_view': 'DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_SV'
                 }
             },
             {
                 'type': 'cortex_search',
                 'tool_definition': {
                     'name': 'policy_search',
-                    'cortex_search_service': 'MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SEARCH_SVC',
+                    'cortex_search_service': 'DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_SEARCH_SVC',
                     'max_results': 3
                 }
             }
@@ -332,29 +332,29 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
 -- ============================================================
 
 -- Test 1: Policy search - 렌탈 설치 관련 규정 조회
-CALL MOVESIGNAL_AGENT('정수기 렌탈 설치가 안 되는 지역이 있나요?');
+CALL DISTRICTPILOT_AGENT('정수기 렌탈 설치가 안 되는 지역이 있나요?');
 
 -- Test 2: Structured data via Analyst - 매출 분석
-CALL MOVESIGNAL_AGENT('서초구, 영등포구, 중구의 최근 6개월 매출 비교를 보여줘.');
+CALL DISTRICTPILOT_AGENT('서초구, 영등포구, 중구의 최근 6개월 매출 비교를 보여줘.');
 
 -- Test 3: Policy search - 마케팅 규정
-CALL MOVESIGNAL_AGENT('마케팅 예산을 어떤 기준으로 배분해야 하나요?');
+CALL DISTRICTPILOT_AGENT('마케팅 예산을 어떤 기준으로 배분해야 하나요?');
 
 -- Test 4: Custom tool - 예산 배분 추천
-CALL MOVESIGNAL_AGENT('영등포구에 5천만 원 마케팅 예산을 배분하려면 어떻게 해야 할까요?');
+CALL DISTRICTPILOT_AGENT('영등포구에 5천만 원 마케팅 예산을 배분하려면 어떻게 해야 할까요?');
 
 -- Test 5: Multi-tool - Analyst + Search 복합 질의
-CALL MOVESIGNAL_AGENT('중구 관광특구 내 렌탈 장비 배치 규정을 알려주고, 최근 중구 매출 예측 결과도 보여줘.');
+CALL DISTRICTPILOT_AGENT('중구 관광특구 내 렌탈 장비 배치 규정을 알려주고, 최근 중구 매출 예측 결과도 보여줘.');
 
 -- Test 6: CS policy lookup
-CALL MOVESIGNAL_AGENT('고객이 강하게 불만을 제기하면 어떤 보상을 할 수 있나요?');
+CALL DISTRICTPILOT_AGENT('고객이 강하게 불만을 제기하면 어떤 보상을 할 수 있나요?');
 
 -- Test 7: Product margin question
-CALL MOVESIGNAL_AGENT('법인 고객 대상 렌탈 마진율 하한선이 얼마인가요?');
+CALL DISTRICTPILOT_AGENT('법인 고객 대상 렌탈 마진율 하한선이 얼마인가요?');
 
 -- Test 8: Direct Cortex Search service call (without agent)
 SELECT SNOWFLAKE.CORTEX.SEARCH(
-    'MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SEARCH_SVC',
+    'DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_SEARCH_SVC',
     '렌탈 마진율',
     3
 );
@@ -365,12 +365,12 @@ SELECT SNOWFLAKE.CORTEX.SEARCH(
 /*
 USE ROLE ACCOUNTADMIN;
 
-GRANT USAGE ON CORTEX SEARCH SERVICE MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SEARCH_SVC
+GRANT USAGE ON CORTEX SEARCH SERVICE DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_SEARCH_SVC
   TO ROLE SYSADMIN;
 
-GRANT USAGE ON PROCEDURE MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_AGENT(VARCHAR)
+GRANT USAGE ON PROCEDURE DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_AGENT(VARCHAR)
   TO ROLE SYSADMIN;
 
-GRANT USAGE ON PROCEDURE MOVESIGNAL_AI.ANALYTICS.RECOMMEND_ALLOCATION(VARCHAR, NUMBER)
+GRANT USAGE ON PROCEDURE DISTRICTPILOT_AI.ANALYTICS.RECOMMEND_ALLOCATION(VARCHAR, NUMBER)
   TO ROLE SYSADMIN;
 */

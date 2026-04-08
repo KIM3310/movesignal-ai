@@ -1,4 +1,4 @@
-# MoveSignal AI — 10분 데모 스크립트 (최종)
+# DistrictPilot AI — 10분 데모 스크립트 (최종)
 
 > Snowflake Korea Hackathon 2026 Tech Track
 > 제출 마감: 2026-04-12 23:59 KST | 결선: 2026-04-29 서울
@@ -14,7 +14,7 @@
 > "다음 달 서초·영등포·중구, 어디에 어떤 렌탈 상품과 마케팅 예산을 얼마나 넣어야 하는가?"
 >
 > 기존 방식은 경험과 감에 의존합니다.
-> MoveSignal AI는 이 질문을 데이터와 AI로 답합니다.
+> DistrictPilot AI는 이 질문을 데이터와 AI로 답합니다.
 
 ---
 

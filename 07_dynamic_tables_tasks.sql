@@ -1,5 +1,5 @@
 -- ============================================================
--- MoveSignal AI: Dynamic Tables, Tasks & Health Monitoring
+-- DistrictPilot AI: Dynamic Tables, Tasks & Health Monitoring
 -- Automated pipeline orchestration for production readiness
 -- ============================================================
 
@@ -8,10 +8,10 @@
 -- ============================================================
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE COMPUTE_WH;
-USE DATABASE MOVESIGNAL_AI;
+USE DATABASE DISTRICTPILOT_AI;
 USE SCHEMA ANALYTICS;
 
-ALTER SESSION SET QUERY_TAG = '{"app":"movesignal_ai","version":"v1"}';
+ALTER SESSION SET QUERY_TAG = '{"app":"districtpilot_ai","version":"v1"}';
 
 -- ============================================================
 -- 1. Dynamic Table: DT_FEATURE_MART
@@ -98,7 +98,7 @@ CREATE OR REPLACE TASK TASK_REFRESH_PIPELINE
     WAREHOUSE = COMPUTE_WH
     SCHEDULE  = 'USING CRON 0 6 * * * Asia/Seoul'
     ALLOW_OVERLAPPING_EXECUTION = FALSE
-    COMMENT   = 'MoveSignal AI: Daily STG table refresh from Marketplace sources'
+    COMMENT   = 'DistrictPilot AI: Daily STG table refresh from Marketplace sources'
 AS
 BEGIN
     -- STG_POP: SPH Floating Population
@@ -191,7 +191,7 @@ CREATE OR REPLACE TASK TASK_RETRAIN_FORECAST
     WAREHOUSE = COMPUTE_WH
     SCHEDULE  = 'USING CRON 0 7 * * 1 Asia/Seoul'
     ALLOW_OVERLAPPING_EXECUTION = FALSE
-    COMMENT   = 'MoveSignal AI: Weekly model retrain (Monday 07:00 KST)'
+    COMMENT   = 'DistrictPilot AI: Weekly model retrain (Monday 07:00 KST)'
 AS
 BEGIN
     -- Step 1: Rebuild forecast input from latest feature mart
@@ -211,7 +211,7 @@ BEGIN
     ORDER BY DISTRICT, DS;
 
     -- Step 2: Retrain the Snowflake ML FORECAST model
-    CREATE OR REPLACE SNOWFLAKE.ML.FORECAST MOVESIGNAL_FORECAST(
+    CREATE OR REPLACE SNOWFLAKE.ML.FORECAST DISTRICTPILOT_FORECAST(
         INPUT_DATA      => SYSTEM$REFERENCE('TABLE', 'FORECAST_INPUT'),
         TIMESTAMP_COLNAME => 'DS',
         TARGET_COLNAME    => 'Y',
@@ -219,7 +219,7 @@ BEGIN
     );
 
     -- Step 3: Generate 3-month forecast
-    CALL MOVESIGNAL_FORECAST!FORECAST(
+    CALL DISTRICTPILOT_FORECAST!FORECAST(
         FORECASTING_PERIODS => 3,
         CONFIG_OBJECT       => {'prediction_interval': 0.95}
     );
@@ -228,7 +228,7 @@ BEGIN
     SELECT * FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
 
     -- Step 4: Refresh feature importance
-    CALL MOVESIGNAL_FORECAST!EXPLAIN_FEATURE_IMPORTANCE();
+    CALL DISTRICTPILOT_FORECAST!EXPLAIN_FEATURE_IMPORTANCE();
 
     CREATE OR REPLACE TABLE FEATURE_IMPORTANCE AS
     SELECT * FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
@@ -261,7 +261,7 @@ WITH dt_health AS (
         NULL                        AS TASK_STATE,
         NULL                        AS MODEL_VERSION
     FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
-        NAME => 'MOVESIGNAL_AI.ANALYTICS.DT_FEATURE_MART'
+        NAME => 'DISTRICTPILOT_AI.ANALYTICS.DT_FEATURE_MART'
     ))
     ORDER BY REFRESH_END_TIME DESC
     LIMIT 1
@@ -276,7 +276,7 @@ dt_alloc_health AS (
         NULL                        AS TASK_STATE,
         NULL                        AS MODEL_VERSION
     FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
-        NAME => 'MOVESIGNAL_AI.ANALYTICS.DT_ALLOCATION_INPUT'
+        NAME => 'DISTRICTPILOT_AI.ANALYTICS.DT_ALLOCATION_INPUT'
     ))
     ORDER BY REFRESH_END_TIME DESC
     LIMIT 1
@@ -315,13 +315,13 @@ task_retrain_health AS (
 ),
 model_health AS (
     SELECT
-        'MOVESIGNAL_FORECAST'       AS COMPONENT,
+        'DISTRICTPILOT_FORECAST'       AS COMPONENT,
         'ML_MODEL'                  AS COMPONENT_TYPE,
         CURRENT_TIMESTAMP()         AS LAST_REFRESH_TIME,
         NULL                        AS TARGET_LAG,
         NULL                        AS REFRESH_STATE,
         NULL                        AS TASK_STATE,
-        'MOVESIGNAL_FORECAST@v1'    AS MODEL_VERSION
+        'DISTRICTPILOT_FORECAST@v1'    AS MODEL_VERSION
     FROM DUAL
 )
 SELECT * FROM dt_health
@@ -335,10 +335,10 @@ UNION ALL SELECT * FROM model_health;
 -- ============================================================
 
 -- Check dynamic tables
-SHOW DYNAMIC TABLES IN SCHEMA MOVESIGNAL_AI.ANALYTICS;
+SHOW DYNAMIC TABLES IN SCHEMA DISTRICTPILOT_AI.ANALYTICS;
 
 -- Check tasks
-SHOW TASKS IN SCHEMA MOVESIGNAL_AI.ANALYTICS;
+SHOW TASKS IN SCHEMA DISTRICTPILOT_AI.ANALYTICS;
 
 -- Preview health view
 SELECT * FROM V_APP_HEALTH;

@@ -1,12 +1,12 @@
 -- ============================================================
--- MoveSignal AI: AJD Telecom Subscription Analytics Integration
+-- DistrictPilot AI: AJD Telecom Subscription Analytics Integration
 -- Source: Snowflake Marketplace - AJD 통신 가입/계약/마케팅/콜센터
 -- DB: SOUTH_KOREA_TELECOM_SUBSCRIPTION_ANALYTICS__CONTRACTS_MARKETING_AND_CALL_CENTER_INSIGHTS_BY_REGION
 -- Views: V01 ~ V11
 -- ============================================================
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE COMPUTE_WH;
-USE DATABASE MOVESIGNAL_AI;
+USE DATABASE DISTRICTPILOT_AI;
 USE SCHEMA ANALYTICS;
 
 -- ============================================================

@@ -1,5 +1,5 @@
 -- ============================================================
--- MoveSignal AI: Ablation Study
+-- DistrictPilot AI: Ablation Study
 -- Compares forecast accuracy across incremental feature sets
 -- Models A through E with progressive feature addition
 -- Target districts: 서초구, 영등포구, 중구
@@ -10,10 +10,10 @@
 -- ============================================================
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE COMPUTE_WH;
-USE DATABASE MOVESIGNAL_AI;
+USE DATABASE DISTRICTPILOT_AI;
 USE SCHEMA ANALYTICS;
 
-ALTER SESSION SET QUERY_TAG = '{"app":"movesignal_ai","module":"ablation_study","version":"v2"}';
+ALTER SESSION SET QUERY_TAG = '{"app":"districtpilot_ai","module":"ablation_study","version":"v2"}';
 
 -- Ablation study design:
 --   Model A: Y-only baseline (TOTAL_SALES, no exogenous variables)
@@ -344,10 +344,10 @@ CALL MODEL_E!SHOW_EVALUATION_METRICS();
 CREATE OR REPLACE TABLE EVAL_METRICS_E AS
 SELECT * FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
 
--- 5f. Alias Model E as production model MOVESIGNAL_FORECAST_V2
+-- 5f. Alias Model E as production model DISTRICTPILOT_FORECAST_V2
 --     Snowflake ML models do not support ALTER RENAME, so we re-create
 --     under the production alias using the same input/config
-CREATE OR REPLACE SNOWFLAKE.ML.FORECAST MOVESIGNAL_FORECAST_V2(
+CREATE OR REPLACE SNOWFLAKE.ML.FORECAST DISTRICTPILOT_FORECAST_V2(
     INPUT_DATA      => SYSTEM$REFERENCE('TABLE', 'FORECAST_INPUT_E'),
     TIMESTAMP_COLNAME => 'DS',
     TARGET_COLNAME    => 'Y',
@@ -580,12 +580,12 @@ ORDER BY DISTRICT, DS;
 SELECT 'ACTUAL_VS_FORECAST updated from Model E' AS STATUS;
 
 -- 9c. Production feature importance
-CALL MOVESIGNAL_FORECAST_V2!EXPLAIN_FEATURE_IMPORTANCE();
+CALL DISTRICTPILOT_FORECAST_V2!EXPLAIN_FEATURE_IMPORTANCE();
 
 CREATE OR REPLACE TABLE FEATURE_IMPORTANCE AS
 SELECT * FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
 
-SELECT 'FEATURE_IMPORTANCE updated from MOVESIGNAL_FORECAST_V2' AS STATUS;
+SELECT 'FEATURE_IMPORTANCE updated from DISTRICTPILOT_FORECAST_V2' AS STATUS;
 
 -- Final verification: show production tables
 SELECT 'FORECAST_RESULTS' AS TBL, COUNT(*) AS ROW_CNT FROM FORECAST_RESULTS
@@ -603,7 +603,7 @@ SELECT 'ABLATION_FEATURE_IMPORTANCE', COUNT(*) FROM ABLATION_FEATURE_IMPORTANCE;
 -- Ablation study complete.
 -- Key artifacts:
 --   Models:  MODEL_A, MODEL_B, MODEL_C, MODEL_D, MODEL_E
---   Alias:   MOVESIGNAL_FORECAST_V2  (= Model E, production)
+--   Alias:   DISTRICTPILOT_FORECAST_V2  (= Model E, production)
 --   Tables:  ABLATION_RESULTS, ABLATION_FEATURE_IMPORTANCE
 --   View:    V_ABLATION_SUMMARY  (MAPE progression per district)
 --   Updated: FORECAST_RESULTS, ACTUAL_VS_FORECAST, FEATURE_IMPORTANCE

@@ -1,6 +1,6 @@
 """
-MoveSignal AI v7 — Competition-Winning Snowflake-native Decision Agent
-서초/영등포/중구 렌탈/마케팅 배분 의사결정 엔진
+DistrictPilot AI v7 — Competition-Winning Snowflake-native Decision Agent
+서초/영등포/중구 수요·배분 의사결정 에이전트
 
 Architecture:
   FEATURE_MART_V2 (holiday + demographics + tourism + commercial)
@@ -21,26 +21,35 @@ from snowflake.snowpark.context import get_active_session
 # Config constants
 # ---------------------------------------------------------------------------
 # V2 includes external data; falls back to FINAL if V2 doesn't exist yet
-FEATURE_MART_FQN = "MOVESIGNAL_AI.ANALYTICS.FEATURE_MART_V2"
-FEATURE_MART_FALLBACK = "MOVESIGNAL_AI.ANALYTICS.FEATURE_MART_FINAL"
-FORECAST_RESULTS_FQN = "MOVESIGNAL_AI.ANALYTICS.FORECAST_RESULTS"
-AVF_FQN = "MOVESIGNAL_AI.ANALYTICS.ACTUAL_VS_FORECAST"
-FORECAST_MODEL_FQN = "MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_FORECAST"
-SEMANTIC_VIEW_FQN = "MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SV"
-HEALTH_VIEW_FQN = "MOVESIGNAL_AI.ANALYTICS.V_APP_HEALTH"
-ABLATION_FQN = "MOVESIGNAL_AI.ANALYTICS.ABLATION_RESULTS"
+FEATURE_MART_FQN = "DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2"
+FEATURE_MART_FALLBACK = "DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_FINAL"
+FORECAST_RESULTS_FQN = "DISTRICTPILOT_AI.ANALYTICS.FORECAST_RESULTS"
+AVF_FQN = "DISTRICTPILOT_AI.ANALYTICS.ACTUAL_VS_FORECAST"
+FORECAST_MODEL_FQN = "DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_FORECAST"
+SEMANTIC_VIEW_FQN = "DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_SV"
+HEALTH_VIEW_FQN = "DISTRICTPILOT_AI.ANALYTICS.V_APP_HEALTH"
+ABLATION_FQN = "DISTRICTPILOT_AI.ANALYTICS.ABLATION_RESULTS"
+EVAL_METRICS_FQN = "DISTRICTPILOT_AI.ANALYTICS.EVAL_METRICS_A"
+FEATURE_IMPORTANCE_FQN = "DISTRICTPILOT_AI.ANALYTICS.FEATURE_IMPORTANCE"
 LLM_MODEL = "mistral-large2"
 
 DISTRICTS_KR = {"서초구": "서초구", "영등포구": "영등포구", "중구": "중구"}
 
 session = get_active_session()
 
-st.set_page_config(page_title="MoveSignal AI v7", layout="wide")
-st.title("MoveSignal AI")
-st.caption(
-    "서초/영등포/중구 렌탈/마케팅 배분 의사결정 엔진  |  "
-    "100% Snowflake Native  |  v7"
+st.set_page_config(page_title="DistrictPilot AI", layout="wide")
+
+# Compact header for SiS — title is already shown in Snowflake toolbar
+st.markdown(
+    "<style>"
+    ".block-container{padding-top:1rem !important;padding-bottom:1rem !important;}"
+    "header[data-testid='stHeader']{display:none;}"
+    "h1{margin-top:0 !important;margin-bottom:0 !important;font-size:1.6rem !important;}"
+    "</style>",
+    unsafe_allow_html=True,
 )
+
+st.markdown("#### DistrictPilot AI — 서초/영등포/중구 수요·배분 의사결정 에이전트 &nbsp;|&nbsp; v7")
 
 # ---------------------------------------------------------------------------
 # Utility / helper functions
@@ -120,10 +129,14 @@ avf_raw = safe_read(f"""
 eval_raw = safe_read(f"""
     SELECT * FROM TABLE({FORECAST_MODEL_FQN}!SHOW_EVALUATION_METRICS())
 """)
+if eval_raw.empty:
+    eval_raw = safe_read(f"SELECT * FROM {EVAL_METRICS_FQN}")
 
 fi_raw = safe_read(f"""
     SELECT * FROM TABLE({FORECAST_MODEL_FQN}!EXPLAIN_FEATURE_IMPORTANCE())
 """)
+if fi_raw.empty:
+    fi_raw = safe_read(f"SELECT * FROM {FEATURE_IMPORTANCE_FQN}")
 
 health_raw = safe_read(f"SELECT * FROM {HEALTH_VIEW_FQN}")
 
@@ -265,7 +278,7 @@ def build_context_json(
         "AGE_20_39_SHARE", "SENIOR_60P_SHARE",
         "TOURISM_DEMAND_IDX", "FOREIGN_VISITOR_IDX",
         "STABILITY_SCORE", "NET_STORE_CHANGE",
-        "HOLIDAY_COUNT",
+        "HOLIDAY_DAYS",
     ]
     if scope != "전체" and not lat.empty:
         snap = lat[lat["DISTRICT"] == scope]
@@ -297,14 +310,14 @@ def build_context_json(
 
     # Holiday info
     holiday_info = {}
-    if not lat.empty and "HOLIDAY_COUNT" in lat.columns:
+    if not lat.empty and "HOLIDAY_DAYS" in lat.columns:
         if scope != "전체":
             hrow = lat[lat["DISTRICT"] == scope]
         else:
             hrow = lat
         if not hrow.empty:
             holiday_info = {
-                "holiday_count": safe_float(hrow.iloc[0].get("HOLIDAY_COUNT", 0)),
+                "holiday_count": safe_float(hrow.iloc[0].get("HOLIDAY_DAYS", 0)),
                 "is_peak": bool(hrow.iloc[0].get("IS_PEAK_HOLIDAY", False))
                 if "IS_PEAK_HOLIDAY" in hrow.columns
                 else False,
@@ -379,7 +392,7 @@ def build_context_json(
 
 def call_ai_complete(question: str, context_json: str) -> dict:
     """AI_COMPLETE with structured output. Falls back to CORTEX.COMPLETE."""
-    prompt = f"""당신은 MoveSignal AI의 한국어 의사결정 보조 모델이다.
+    prompt = f"""당신은 DistrictPilot AI의 한국어 의사결정 보조 모델이다.
 
 반드시 지킬 규칙:
 1) 아래 CONTEXT 밖의 사실은 만들지 말 것.
@@ -463,7 +476,7 @@ header_col3.metric(
     f"{forecast_raw['TS'].nunique()}개월" if not forecast_raw.empty else "-",
 )
 # Count external columns that actually exist
-_ext_cols = ["HOLIDAY_COUNT", "AGE_20_39_SHARE", "TOURISM_DEMAND_IDX", "STABILITY_SCORE"]
+_ext_cols = ["HOLIDAY_DAYS", "AGE_20_39_SHARE", "TOURISM_DEMAND_IDX", "STABILITY_SCORE"]
 _ext_count = sum(1 for c in _ext_cols if c in feature_mart.columns)
 header_col4.metric(
     "외부 데이터",
@@ -539,7 +552,7 @@ with tabs[0]:
                             )
 
             with st.expander("Ablation 상세 데이터"):
-                st.dataframe(ablation_raw, use_container_width=True, hide_index=True)
+                st.dataframe(ablation_raw, use_container_width=True)
     else:
         st.info(
             "ABLATION_RESULTS 테이블이 없습니다. "
@@ -616,7 +629,7 @@ with tabs[1]:
             )
             kpi_row2[3].metric(
                 "공휴일 수",
-                fmt_int(snap.get("HOLIDAY_COUNT", 0)),
+                fmt_int(snap.get("HOLIDAY_DAYS", 0)),
             )
 
             # --- Time series: Population & Spending ---
@@ -728,7 +741,6 @@ with tabs[1]:
                             st.dataframe(
                                 fi_chart_data,
                                 use_container_width=True,
-                                hide_index=True,
                             )
             else:
                 st.info("Feature importance 데이터가 없습니다.")
@@ -751,21 +763,20 @@ with tabs[1]:
                     "FOREIGN_VISITOR_IDX",
                     "STABILITY_SCORE",
                     "NET_STORE_CHANGE",
-                    "HOLIDAY_COUNT",
+                    "HOLIDAY_DAYS",
                 ]
                 if c in latest.columns
             ]
             st.dataframe(
                 latest[compare_columns],
                 use_container_width=True,
-                hide_index=True,
             )
 
 # ===========================================================================
 # Tab 3: AI Agent
 # ===========================================================================
 with tabs[2]:
-    st.subheader("MoveSignal AI Agent")
+    st.subheader("DistrictPilot AI Agent")
     st.caption(
         "Cortex Analyst(숫자) + AI_COMPLETE(액션) -- "
         "인구/소비/부동산/관광/상권/인구구조 데이터 기반 의사결정"
@@ -777,7 +788,7 @@ with tabs[2]:
             "질문 입력 (한국어 OK)",
             placeholder="예: 다음 달 어디에 렌탈 예산을 더 배분해야 해?",
         )
-        submitted = st.form_submit_button("Ask MoveSignal AI")
+        submitted = st.form_submit_button("Ask DistrictPilot AI")
 
     # Quick questions (updated for extended data)
     st.caption("추천 질문:")
@@ -922,7 +933,7 @@ with tabs[3]:
             )
 
         comparison_df = pd.DataFrame(comparison_rows)
-        st.dataframe(comparison_df, use_container_width=True, hide_index=True)
+        st.dataframe(comparison_df, use_container_width=True)
 
         # Visual comparison
         chart_data = pd.DataFrame(
@@ -987,12 +998,22 @@ with tabs[3]:
 with tabs[4]:
     st.subheader("운영 / 신뢰성 패널")
 
+    # --- Query Tag: set session-level tag for audit trail ---
+    try:
+        session.sql(
+            "ALTER SESSION SET QUERY_TAG = "
+            "'{\"app\":\"districtpilot_ai\",\"version\":\"v7\",\"tab\":\"ops_trust\"}'"
+        ).collect()
+    except Exception:
+        pass
+
     # --- Health panel ---
     if not health_raw.empty:
-        st.dataframe(health_raw, use_container_width=True, hide_index=True)
+        st.dataframe(health_raw, use_container_width=True)
     else:
-        # Fallback: query Snowflake metadata directly for live evidence
         live_health_parts = []
+
+        # 1) Dynamic Table current state
         dt_health = safe_read(
             "SELECT NAME, SCHEDULING_STATE, DATA_TIMESTAMP, TARGET_LAG_SEC "
             "FROM INFORMATION_SCHEMA.DYNAMIC_TABLES "
@@ -1000,8 +1021,25 @@ with tabs[4]:
         )
         if not dt_health.empty:
             st.markdown("**Dynamic Table 상태**")
-            st.dataframe(dt_health, use_container_width=True, hide_index=True)
+            st.dataframe(dt_health, use_container_width=True)
             live_health_parts.append("DT")
+
+        # 2) Dynamic Table Refresh History (freshness evidence)
+        dt_refresh = safe_read(
+            "SELECT NAME, STATE, STATE_MESSAGE, "
+            "REFRESH_START_TIME, REFRESH_END_TIME, "
+            "LATEST_DATA_TIMESTAMP, "
+            "TIMESTAMPDIFF('SECOND', LATEST_DATA_TIMESTAMP, CURRENT_TIMESTAMP()) AS LAG_SEC "
+            "FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY("
+            "  NAME_PREFIX => 'DISTRICTPILOT_AI.ANALYTICS.')) "
+            "ORDER BY REFRESH_END_TIME DESC LIMIT 10"
+        )
+        if not dt_refresh.empty:
+            st.markdown("**Dynamic Table 갱신 이력 (최근 10건)**")
+            st.dataframe(dt_refresh, use_container_width=True)
+            live_health_parts.append("DT_REFRESH")
+
+        # 3) Task execution history
         task_health = safe_read(
             "SELECT NAME, STATE, SCHEDULE, LAST_COMMITTED_ON "
             "FROM INFORMATION_SCHEMA.TASK_HISTORY "
@@ -1009,18 +1047,64 @@ with tabs[4]:
         )
         if not task_health.empty:
             st.markdown("**Task 실행 이력**")
-            st.dataframe(task_health, use_container_width=True, hide_index=True)
+            st.dataframe(task_health, use_container_width=True)
             live_health_parts.append("Task")
+
         if not live_health_parts:
             st.info(
                 "V_APP_HEALTH 뷰 또는 Dynamic Table/Task가 설정되면 실시간 상태가 표시됩니다."
             )
+
         health_cols = st.columns(5)
         health_cols[0].metric("데이터 갱신", "매일 06:00")
         health_cols[1].metric("모델 재학습", "주 1회")
         health_cols[2].metric("Target lag", "1시간")
         health_cols[3].metric("응답 시간", "~6초")
         health_cols[4].metric("월 비용", "~$80")
+
+    # --- Owner's Rights & Execution Context ---
+    st.divider()
+    st.subheader("실행 환경 증거")
+    exec_ctx = safe_read(
+        "SELECT CURRENT_ROLE() AS ROLE, "
+        "CURRENT_WAREHOUSE() AS WAREHOUSE, "
+        "CURRENT_DATABASE() AS DB, "
+        "CURRENT_SCHEMA() AS SCHEMA, "
+        "CURRENT_SESSION() AS SESSION_ID, "
+        "CURRENT_TIMESTAMP() AS TS"
+    )
+    if not exec_ctx.empty:
+        ctx_cols = st.columns(4)
+        row = exec_ctx.iloc[0]
+        ctx_cols[0].metric("Role", str(row.get("ROLE", "N/A")))
+        ctx_cols[1].metric("Warehouse", str(row.get("WAREHOUSE", "N/A")))
+        ctx_cols[2].metric("Database", str(row.get("DB", "N/A")))
+        ctx_cols[3].metric("Schema", str(row.get("SCHEMA", "N/A")))
+    st.markdown(
+        "**Owner's Rights**: SiS 앱은 소유자(ACCOUNTADMIN)의 권한과 "
+        "소유자의 Warehouse(`COMPUTE_WH`)로 실행됩니다. "
+        "앱 사용자는 별도 Warehouse 권한 없이도 쿼리를 실행할 수 있습니다."
+    )
+
+    # --- CORTEX_USER role smoke-test ---
+    st.divider()
+    st.subheader("Cortex 권한 검증")
+    cortex_ok = False
+    try:
+        cortex_check = session.sql(
+            "SELECT SYSTEM$VALIDATE_SEMANTIC_VIEW("
+            "'DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_SV') AS RESULT"
+        ).collect()
+        if cortex_check:
+            result_val = str(cortex_check[0]["RESULT"])
+            cortex_ok = "error" not in result_val.lower()
+            st.code(result_val[:500], language="json")
+    except Exception as e:
+        st.warning(f"Semantic View 검증 실패: {e}")
+    st.metric(
+        "Semantic View 유효성",
+        "PASS" if cortex_ok else "CHECK NEEDED",
+    )
 
     # --- Architecture ---
     st.divider()
@@ -1039,12 +1123,12 @@ with tabs[4]:
             },
             {
                 "Layer": "ML",
-                "Snowflake Object": "MOVESIGNAL_FORECAST (ML FORECAST)",
+                "Snowflake Object": "DISTRICTPILOT_FORECAST (ML FORECAST)",
                 "역할": "3개월 수요 예측 + Ablation 검증",
             },
             {
                 "Layer": "Semantic",
-                "Snowflake Object": "MOVESIGNAL_SV (Semantic View)",
+                "Snowflake Object": "DISTRICTPILOT_SV (Semantic View)",
                 "역할": "비즈니스 메트릭 정의",
             },
             {
@@ -1064,7 +1148,7 @@ with tabs[4]:
             },
         ]
     )
-    st.dataframe(arch_data, use_container_width=True, hide_index=True)
+    st.dataframe(arch_data, use_container_width=True)
 
     # --- Security model ---
     st.divider()
@@ -1073,7 +1157,7 @@ with tabs[4]:
         """
 - **Streamlit 실행**: Owner's rights (소유자 권한 + 소유자 Warehouse)
 - **Cortex Analyst**: Semantic View 접근 권한 기반 (ACCOUNTADMIN, 커스텀 롤 확장 가능)
-- **Query Tag**: `{"app":"movesignal_ai","version":"v7"}`
+- **Query Tag**: `{"app":"districtpilot_ai","version":"v7"}`
 - **데이터 격리**: Marketplace 데이터 -> 내부 STG 테이블 복제 (원본 비노출)
 """
     )
@@ -1126,7 +1210,7 @@ with tabs[4]:
             },
         ]
     )
-    st.dataframe(ext_data, use_container_width=True, hide_index=True)
+    st.dataframe(ext_data, use_container_width=True)
 
     # --- Dual use case ---
     st.divider()

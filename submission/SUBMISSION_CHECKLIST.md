@@ -1,10 +1,10 @@
-# MoveSignal AI - Snowflake Korea Hackathon 2026 Tech Track
+# DistrictPilot AI - Snowflake Korea Hackathon 2026 Tech Track
 
 ## 제출 체크리스트 (2026-04-12 23:59 KST)
 
 ### 필수 제출물
-- [ ] 소스코드 ZIP (MoveSignal_AI_Submission.zip)
-- [ ] 프로젝트/기술 접근 슬라이드 (MoveSignal_AI_Hackathon.pptx, 15슬라이드)
+- [ ] 소스코드 ZIP (DistrictPilot_AI_Submission.zip)
+- [ ] 프로젝트/기술 접근 슬라이드 (DistrictPilot_AI_Hackathon.pptx, 15슬라이드)
 - [ ] 10분 이하 데모 영상 (한국어, MP4)
 - [ ] 모든 제출물 및 구두 발표: 한국어
 

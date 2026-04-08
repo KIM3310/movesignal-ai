@@ -1,12 +1,12 @@
 /*=============================================================================
-  MoveSignal AI - Semantic View for Cortex Analyst / AI SQL Generation
+  DistrictPilot AI - Semantic View for Cortex Analyst / AI SQL Generation
   06_semantic_view.sql
 
-  Purpose: Expose FEATURE_MART_FINAL, FORECAST_RESULTS, ACTUAL_VS_FORECAST
+  Purpose: Expose FEATURE_MART_V2, FORECAST_RESULTS, ACTUAL_VS_FORECAST
            as a unified semantic layer for natural-language-to-SQL queries.
 
   Target Districts: 서초구, 영등포구, 중구
-  Schema: MOVESIGNAL_AI.ANALYTICS
+  Schema: DISTRICTPILOT_AI.ANALYTICS
 =============================================================================*/
 
 -- ============================================================
@@ -14,13 +14,13 @@
 -- ============================================================
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE COMPUTE_WH;
-USE DATABASE MOVESIGNAL_AI;
+USE DATABASE DISTRICTPILOT_AI;
 USE SCHEMA ANALYTICS;
 
 -- ============================================================
 -- 1. Create Semantic View
 -- ============================================================
-CREATE OR REPLACE SEMANTIC VIEW MOVESIGNAL_SV
+CREATE OR REPLACE SEMANTIC VIEW DISTRICTPILOT_SV
 
   -- ---------------------------------------------------------
   -- LOGICAL TABLES
@@ -32,7 +32,7 @@ CREATE OR REPLACE SEMANTIC VIEW MOVESIGNAL_SV
     -- -------------------------------------------------------
     FEATURE_MART AS (
       SELECT *
-      FROM MOVESIGNAL_AI.ANALYTICS.FEATURE_MART_V2
+      FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2
     )
       PRIMARY KEY (YM, DISTRICT)
       WITH SYNONYMS = ('피쳐마트', '피처마트', 'feature mart', '마트')
@@ -40,7 +40,7 @@ CREATE OR REPLACE SEMANTIC VIEW MOVESIGNAL_SV
       -- Dimensions
       COLUMNS (
         YM
-          COMMENT 'Year-month key in YYYY-MM format (기준 연월)'
+          COMMENT 'Year-month key in YYYYMM format, e.g. 202501 (기준 연월)'
           WITH SYNONYMS = ('연월', '기준월', 'year_month', '월', '날짜'),
 
         DISTRICT
@@ -318,7 +318,7 @@ CREATE OR REPLACE SEMANTIC VIEW MOVESIGNAL_SV
         FORECAST AS NEXT_MONTH_FORECAST,
         LOWER_BOUND,
         UPPER_BOUND
-      FROM MOVESIGNAL_AI.ANALYTICS.FORECAST_RESULTS
+      FROM DISTRICTPILOT_AI.ANALYTICS.FORECAST_RESULTS
     )
       PRIMARY KEY (DISTRICT, DS)
       WITH SYNONYMS = ('예측', '포캐스트', 'forecast', '예측결과')
@@ -355,7 +355,7 @@ CREATE OR REPLACE SEMANTIC VIEW MOVESIGNAL_SV
     -- -------------------------------------------------------
     ACTUAL_VS_FORECAST AS (
       SELECT *
-      FROM MOVESIGNAL_AI.ANALYTICS.ACTUAL_VS_FORECAST
+      FROM DISTRICTPILOT_AI.ANALYTICS.ACTUAL_VS_FORECAST
     )
       PRIMARY KEY (DISTRICT, DS)
       WITH SYNONYMS = ('실적대비예측', '백테스트', 'actual_forecast', '예측정확도')
@@ -418,7 +418,7 @@ CREATE OR REPLACE SEMANTIC VIEW MOVESIGNAL_SV
   -- ---------------------------------------------------------
   -- AI SQL GENERATION INSTRUCTIONS
   -- ---------------------------------------------------------
-  COMMENT = 'MoveSignal AI 시맨틱 뷰 - 서울시 서초구/영등포구/중구 대상 임대마케팅 예산배분 엔진'
+  COMMENT = 'DistrictPilot AI 시맨틱 뷰 - 서울시 서초구/영등포구/중구 대상 임대마케팅 예산배분 엔진'
 
   AI_SQL_GENERATION (
     INSTRUCTIONS = '
@@ -428,13 +428,20 @@ CREATE OR REPLACE SEMANTIC VIEW MOVESIGNAL_SV
          예: "영등포구와 중구 매출 비교" → FEATURE_MART에서 DISTRICT별 GROUP BY.
       3. 숫자는 반올림 규칙 통일: 비율은 ROUND(x, 1), 금액은 ROUND(x, 0).
       4. 금액은 억원 단위로 표시한다. 원화 금액 / 100000000 변환 후 ROUND(x, 1) || ''억원'' 형태.
-      5. 예측 정확도 질문은 ACTUAL_VS_FORECAST 테이블을 사용하고,
+      5. 퍼센트 값은 0-1 비율이 아닌 100을 곱한 % 형태로 표시한다.
+         예: 0.35 → 35.0% (ROUND(x * 100, 1) || ''%'').
+      6. 예측 정확도 질문은 ACTUAL_VS_FORECAST 테이블을 사용하고,
          오차율 = ABS(ACTUAL - FORECAST_VAL) / NULLIF(ACTUAL, 0) * 100 으로 계산.
-      6. 시계열 추세 질문은 YM 또는 DS 기준 ORDER BY ASC 사용.
-      7. 순이동(NET_MOVE) 양수는 전입 우세, 음수는 전출 우세로 해석.
-      8. DISTRICT 값은 항상 한글 구명 (서초구, 영등포구, 중구)으로 필터링.
-      9. 최신 데이터 요청 시 MAX(YM) 또는 MAX(DS) 서브쿼리를 사용.
-      10. 복합 질문(예: "자산 대비 매출이 가장 높은 구")은 파생 컬럼을 CTE로 구성.
+      7. 시계열 추세 질문은 YM 또는 DS 기준 ORDER BY ASC 사용.
+      8. 순이동(NET_MOVE) 양수는 전입 우세, 음수는 전출 우세로 해석.
+      9. DISTRICT 값은 항상 한글 구명 (서초구, 영등포구, 중구)으로 필터링.
+      10. 최신 데이터 요청 시 MAX(YM) 또는 MAX(DS) 서브쿼리를 사용.
+      11. 복합 질문(예: "자산 대비 매출이 가장 높은 구")은 파생 컬럼을 CTE로 구성.
+      12. 질문에 기간이 명시되지 않으면 다음 달 forecast 기준으로 답변한다.
+          예: "1순위 구는?" → FORECAST 테이블에서 NEXT_MONTH_FORECAST가 가장 높은 구.
+      13. 질문에 구 이름이 없으면 clarification을 요청한다.
+          예: "매출이 얼마야?" → "어느 구의 매출을 조회할까요? (서초구, 영등포구, 중구)"
+          단, 전체 비교/순위 질문은 3개 구 모두 조회.
     '
   )
 
@@ -471,21 +478,167 @@ CREATE OR REPLACE SEMANTIC VIEW MOVESIGNAL_SV
         → FEATURE_MART 인구/이동 컬럼 사용
     '
   )
+
+  -- ---------------------------------------------------------
+  -- VERIFIED QUERIES (VQR) for Cortex Analyst optimization
+  -- ---------------------------------------------------------
+  VERIFIED_QUERIES (
+    -- VQ1: 배분 기본 질문
+    VERIFIED_QUERY vq_top_district_next_month
+      QUESTION = '다음 달 1순위 구는?'
+      VERIFIED_QUERY_SQL = '
+        SELECT SERIES AS DISTRICT,
+               ROUND(FORECAST / 100000000, 1) AS FORECAST_억원,
+               ROUND(FORECAST / NULLIF(SUM(FORECAST) OVER (), 0) * 100, 1) AS ALLOCATION_PCT
+        FROM DISTRICTPILOT_AI.ANALYTICS.FORECAST_RESULTS
+        ORDER BY FORECAST DESC
+        LIMIT 1
+      ',
+
+    -- VQ2: 구별 배분 비교
+    VERIFIED_QUERY vq_allocation_all
+      QUESTION = '3개 구 배분 비율을 알려줘'
+      VERIFIED_QUERY_SQL = '
+        SELECT SERIES AS DISTRICT,
+               ROUND(FORECAST / 100000000, 1) AS FORECAST_억원,
+               ROUND(FORECAST / NULLIF(SUM(FORECAST) OVER (), 0) * 100, 1) AS ALLOCATION_PCT
+        FROM DISTRICTPILOT_AI.ANALYTICS.FORECAST_RESULTS
+        ORDER BY FORECAST DESC
+      ',
+
+    -- VQ3: 구간 비교 - 왜 A가 B보다 높은가
+    VERIFIED_QUERY vq_why_higher
+      QUESTION = '왜 영등포가 서초보다 높나?'
+      VERIFIED_QUERY_SQL = '
+        WITH latest AS (
+          SELECT * FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2
+          WHERE YM = (SELECT MAX(YM) FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2)
+        )
+        SELECT DISTRICT,
+               ROUND(TOTAL_SALES / 100000000, 1) AS 매출_억원,
+               TOTAL_POP AS 인구,
+               ROUND(SALES_PER_POP, 0) AS 인당매출,
+               ROUND(VISIT_POP, 0) AS 유동인구,
+               ROUND(TOURISM_DEMAND_IDX, 1) AS 관광지수
+        FROM latest
+        WHERE DISTRICT IN (''영등포구'', ''서초구'')
+        ORDER BY TOTAL_SALES DESC
+      ',
+
+    -- VQ4: 공휴일 효과 제거
+    VERIFIED_QUERY vq_holiday_effect
+      QUESTION = '공휴일 효과를 빼면 배분이 바뀌나?'
+      VERIFIED_QUERY_SQL = '
+        WITH latest AS (
+          SELECT * FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2
+          WHERE YM = (SELECT MAX(YM) FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2)
+        )
+        SELECT DISTRICT,
+               ROUND(TOTAL_SALES / 100000000, 1) AS 총매출_억원,
+               HOLIDAY_DAYS AS 공휴일수,
+               BUSINESS_DAYS AS 영업일수,
+               ROUND(TOTAL_SALES / NULLIF(BUSINESS_DAYS, 0) / 100000000, 2) AS 영업일당매출_억원
+        FROM latest
+        ORDER BY 영업일당매출_억원 DESC
+      ',
+
+    -- VQ5: 예측 정확도
+    VERIFIED_QUERY vq_forecast_accuracy
+      QUESTION = '예측 정확도는 어느 정도야?'
+      VERIFIED_QUERY_SQL = '
+        SELECT DISTRICT,
+               COUNT(*) AS 검증건수,
+               ROUND(AVG(ABS(ACTUAL - FORECAST_VAL) / NULLIF(ACTUAL, 0) * 100), 1) AS 평균오차율_PCT,
+               ROUND(1 - AVG(ABS(ACTUAL - FORECAST_VAL) / NULLIF(ACTUAL, 0)), 3) AS 정확도
+        FROM DISTRICTPILOT_AI.ANALYTICS.ACTUAL_VS_FORECAST
+        GROUP BY DISTRICT
+        ORDER BY 정확도 DESC
+      ',
+
+    -- VQ6: 최근 매출 추이
+    VERIFIED_QUERY vq_sales_trend
+      QUESTION = '최근 3개월 매출 추이를 보여줘'
+      VERIFIED_QUERY_SQL = '
+        SELECT YM, DISTRICT,
+               ROUND(TOTAL_SALES / 100000000, 1) AS 매출_억원,
+               ROUND(SALES_CHG_PCT * 100, 1) AS 전월대비_PCT
+        FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2
+        WHERE YM >= (SELECT TO_CHAR(DATEADD(MONTH, -3, TO_DATE(MAX(YM), ''YYYYMM'')), ''YYYYMM'') FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2)
+        ORDER BY YM ASC, DISTRICT
+      ',
+
+    -- VQ7: 인구 순이동 순위
+    VERIFIED_QUERY vq_net_migration
+      QUESTION = '순이동이 가장 많은 구는?'
+      VERIFIED_QUERY_SQL = '
+        SELECT DISTRICT, NET_MOVE AS 순이동,
+               MOVE_IN AS 전입, MOVE_OUT AS 전출,
+               CASE WHEN NET_MOVE > 0 THEN ''전입우세'' ELSE ''전출우세'' END AS 판정
+        FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2
+        WHERE YM = (SELECT MAX(YM) FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2)
+        ORDER BY NET_MOVE DESC
+      ',
+
+    -- VQ8: 부동산 가격 비교
+    VERIFIED_QUERY vq_real_estate
+      QUESTION = '평당가격이 가장 비싼 구는?'
+      VERIFIED_QUERY_SQL = '
+        SELECT DISTRICT,
+               ROUND(AVG_PRICE_PER_PYEONG / 10000, 0) AS 평당가_만원,
+               ROUND(AVG_MEME_PRICE / 100000000, 1) AS 매매가_억원,
+               ROUND(PRICE_TO_ASSET_RATIO, 2) AS PIR
+        FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2
+        WHERE YM = (SELECT MAX(YM) FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2)
+        ORDER BY AVG_PRICE_PER_PYEONG DESC
+      ',
+
+    -- VQ9: 청년 비중과 매출 상관
+    VERIFIED_QUERY vq_youth_sales
+      QUESTION = '청년 비중이 높은 구가 매출도 높나?'
+      VERIFIED_QUERY_SQL = '
+        SELECT DISTRICT,
+               ROUND(AGE_20_39_SHARE * 100, 1) AS 청년비중_PCT,
+               ROUND(TOTAL_SALES / 100000000, 1) AS 매출_억원,
+               ROUND(COFFEE / 100000000, 2) AS 커피매출_억원
+        FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2
+        WHERE YM = (SELECT MAX(YM) FROM DISTRICTPILOT_AI.ANALYTICS.FEATURE_MART_V2)
+        ORDER BY AGE_20_39_SHARE DESC
+      ',
+
+    -- VQ10: 예측 신뢰구간
+    VERIFIED_QUERY vq_confidence_interval
+      QUESTION = '서초구 예측 신뢰구간은?'
+      VERIFIED_QUERY_SQL = '
+        SELECT SERIES AS DISTRICT,
+               ROUND(FORECAST / 100000000, 1) AS 예측값_억원,
+               ROUND(LOWER_BOUND / 100000000, 1) AS 하한_억원,
+               ROUND(UPPER_BOUND / 100000000, 1) AS 상한_억원,
+               ROUND((UPPER_BOUND - LOWER_BOUND) / NULLIF(FORECAST, 0) * 100, 1) AS 구간폭_PCT
+        FROM DISTRICTPILOT_AI.ANALYTICS.FORECAST_RESULTS
+        WHERE SERIES = ''서초구''
+      '
+  )
 ;
 
 -- ============================================================
--- 2. Grant Usage (adjust roles as needed)
+-- 2. Grant Usage
 -- ============================================================
-GRANT SELECT ON SEMANTIC VIEW MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SV
+GRANT SELECT ON SEMANTIC VIEW DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_SV
   TO ROLE ACCOUNTADMIN;
 
 -- Optional: grant to analyst / application roles
--- GRANT SELECT ON SEMANTIC VIEW MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SV
---   TO ROLE MOVESIGNAL_ANALYST;
+-- GRANT SELECT ON SEMANTIC VIEW DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_SV
+--   TO ROLE CORTEX_USER;
 
 -- ============================================================
 -- 3. Verification
 -- ============================================================
-DESCRIBE SEMANTIC VIEW MOVESIGNAL_SV;
+DESCRIBE SEMANTIC VIEW DISTRICTPILOT_SV;
 
-SELECT SYSTEM$VALIDATE_SEMANTIC_VIEW('MOVESIGNAL_AI.ANALYTICS.MOVESIGNAL_SV');
+SELECT SYSTEM$VALIDATE_SEMANTIC_VIEW('DISTRICTPILOT_AI.ANALYTICS.DISTRICTPILOT_SV');
+
+-- ============================================================
+-- 4. Run Cortex Analyst Optimization (after VQR added)
+-- ============================================================
+-- This broadens the VQR coverage to handle paraphrased variants
+-- ALTER SEMANTIC VIEW DISTRICTPILOT_SV SET CORTEX_ANALYST_OPTIMIZATION = ON;
