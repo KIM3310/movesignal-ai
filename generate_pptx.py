@@ -1,4 +1,4 @@
-"""Generate DistrictPilot AI Hackathon PPT (15 slides, dark navy theme)"""
+"""Generate DistrictPilot AI Hackathon PPT (final deck, dark navy theme)."""
 from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
@@ -141,7 +141,7 @@ add_text(s, "Sponsor (Snowflake Marketplace)", 0.5, 1.2, 6, 0.5, size=20, bold=T
 add_table_slide(s, ["Source", "Data", "Level"], [
     ["SPH", "유동인구 / 카드소비 / 자산소득", "법정동 → 구"],
     ["Richgo", "매매/전세 시세 / 인구이동", "시군구"],
-    ["AJD", "통신 가입 / 렌탈 / 마케팅 / CS", "시/군"],
+    ["AJD (Optional)", "통신 가입 / 렌탈 / 마케팅 / CS", "별도 통합 시 사용"],
 ], 0.5, 1.8, 6)
 add_text(s, "External (Public Open Data)", 0.5, 3.8, 6, 0.5, size=20, bold=True, color=WHITE)
 add_table_slide(s, ["Source", "Data", "License"], [
@@ -160,9 +160,9 @@ add_rect(s, 0, 0, 0.08, 7.5, ACCENT)
 add_text(s, "Architecture", 0.5, 0.4, 5, 0.6, size=36, bold=True, color=ACCENT)
 # Architecture layers as boxes
 layers = [
-    ("Data Sources", "SPH + Richgo + AJD + 공휴일 + 연령 + 관광 + 상권", 0.8, 1.3),
-    ("Feature Store", "DT_FEATURE_MART (Dynamic Table, 1h lag) → FEATURE_MART_V2", 0.8, 2.3),
-    ("ML / AI", "ML FORECAST (Ablation A→E) + Semantic View + Cortex Analyst/Search", 0.8, 3.3),
+    ("Data Sources", "SPH + Richgo + 공휴일 + 연령 + 관광 + 상권 (AJD optional)", 0.8, 1.3),
+    ("Feature Store", "DT_FEATURE_MART -> FEATURE_MART_V2", 0.8, 2.3),
+    ("ML / AI", "DISTRICTPILOT_FORECAST_V2 + Semantic View + Cortex Search + AI_COMPLETE", 0.8, 3.3),
     ("Decision", "AI_COMPLETE Structured Output → Action Cards", 0.8, 4.3),
     ("App", "Streamlit in Snowflake (5 tabs: Allocation | Analysis | AI | Simulation | Ops)", 0.8, 5.3),
     ("Ops", "Tasks (daily refresh / weekly retrain) + V_APP_HEALTH + Query Tags", 0.8, 6.3),
@@ -283,9 +283,9 @@ features = [
     ("Semantic View", "DISTRICTPILOT_SV — 비즈니스 메트릭/차원/관계 정의, AI 지침 포함"),
     ("Cortex Analyst", "Semantic View 기반 정확한 SQL 생성, RBAC 연동"),
     ("Cortex Search", "정책/룰북 하이브리드 검색 (벡터 + 키워드)"),
-    ("AI_COMPLETE", "Structured output (JSON schema) + bind params + guardrails"),
+    ("AI_COMPLETE", "Structured output (JSON schema) + CORTEX.COMPLETE fallback"),
     ("ML FORECAST", "외생변수 + evaluation + feature importance + ablation"),
-    ("Dynamic Tables", "DT_FEATURE_MART (1h lag) + DT_ALLOCATION_INPUT (downstream)"),
+    ("Dynamic Tables", "DT_FEATURE_MART + FEATURE_MART_V2 serving layer"),
     ("Tasks", "매일 06:00 갱신 + 주 1회 재학습 + 자동 재시도"),
     ("Streamlit in SiS", "Owner's rights, 데이터 외부 미유출, RBAC 접근 관리"),
 ]
@@ -304,7 +304,7 @@ add_rect(s, 0, 0, 0.08, 7.5, ACCENT)
 add_text(s, "Operations / Trust", 0.5, 0.4, 6, 0.6, size=36, bold=True, color=ACCENT)
 add_table_slide(s, ["Component", "Type", "Status"], [
     ["DT_FEATURE_MART", "Dynamic Table", "1h target lag"],
-    ["DT_ALLOCATION_INPUT", "Dynamic Table", "Downstream"],
+    ["FEATURE_MART_V2", "Serving Table", "App input"],
     ["TASK_REFRESH_PIPELINE", "Task", "Daily 06:00 KST"],
     ["TASK_RETRAIN_FORECAST", "Task", "Weekly Mon 07:00"],
     ["V_APP_HEALTH", "View", "Real-time monitoring"],
@@ -380,7 +380,7 @@ add_bg(s, NAVY)
 add_rect(s, 0, 0, 0.08, 7.5, ACCENT)
 add_text(s, "Next Steps", 0.5, 0.4, 5, 0.6, size=36, bold=True, color=ACCENT)
 steps = [
-    ("Phase 1", "AJD 완전 통합", "V01~V11 전체 뷰 매핑 → 상품/채널 수준 추천"),
+    ("Phase 1", "AJD 선택 통합", "상품/채널 수준 추천까지 확장 가능한 옵션 레이어"),
     ("Phase 2", "Cortex Agent", "Analyst + Search + Custom tool 오케스트레이션"),
     ("Phase 3", "MCP Server", "Managed MCP로 외부 시스템 안전 연결"),
     ("Phase 4", "Native App", "Marketplace listing으로 앱 배포"),
@@ -407,8 +407,8 @@ add_table_slide(s, ["Object", "Type", "Role"], [
     ["DISTRICTPILOT_FORECAST_V2", "ML Model", "Ablation E (production)"],
     ["DISTRICTPILOT_SV", "Semantic View", "Cortex Analyst용 메트릭 정의"],
     ["DISTRICTPILOT_SEARCH_SVC", "Cortex Search", "정책/룰북 검색"],
-    ["ABLATION_RESULTS", "Table", "5 모델 MAPE/SMAPE/MAE"],
-    ["V_ABLATION_SUMMARY", "View", "Ablation 개선율 요약"],
+    ["ABLATION_RESULTS", "Table/View", "5 모델 MAPE/SMAPE/MAE"],
+    ["FORECAST_RESULTS", "Table", "예측 결과 serving"],
     ["TASK_REFRESH_PIPELINE", "Task", "매일 06:00 KST"],
     ["TASK_RETRAIN_FORECAST", "Task", "매주 월 07:00 KST"],
     ["V_APP_HEALTH", "View", "운영 상태 모니터링"],
@@ -425,12 +425,12 @@ add_text(s, "Evidence Chain", 0.5, 0.4, 8, 0.6, size=36, bold=True, color=ACCENT
 add_text(s, "의사결정의 6단계 증거 — 모두 Snowflake-native", 0.5, 1.0, 10, 0.5, size=18, color=ICE_BLUE)
 
 chain_steps = [
-    ("1", "Forecast", "ML FORECAST", "3구 x 3개월, MAPE<10%, 95% CI"),
+    ("1", "Forecast", "DISTRICTPILOT_FORECAST_V2", "3구 x 다월 예측, 평가 지표와 함께 검증"),
     ("2", "Feature Importance", "EXPLAIN_FEATURE_IMPORTANCE()", "Top-5 기여도 + ablation 개선 증명"),
     ("3", "Semantic View", "DISTRICTPILOT_SV", "VQR 10개, SQL규칙 13개, synonym 100+"),
     ("4", "Search Grounding", "CORTEX.SEARCH()", "외부 컨텍스트 근거, hallucination 방지"),
-    ("5", "Structured Output", "AI_COMPLETE", "JSON action card + confidence score"),
-    ("6", "Refresh State", "DT_REFRESH_HISTORY", "LAG_SEC, 갱신 이력, query_tag 감사"),
+    ("5", "Structured Output", "AI_COMPLETE() + CORTEX.COMPLETE()", "JSON action card + confidence score"),
+    ("6", "Refresh State", "V_APP_HEALTH", "LAG_SEC, 갱신 이력, task 상태, query_tag 감사"),
 ]
 for i, (num, title, obj, desc) in enumerate(chain_steps):
     y = 1.7 + i * 0.85
@@ -456,7 +456,7 @@ add_text(s, "Doeon Kim  |  github.com/KIM3310", 0.5, 4.8, 12.3, 0.5, size=16, co
 add_text(s, "Q & A", 0.5, 5.8, 12.3, 0.8, size=36, bold=True, color=LIGHT_GRAY, align=PP_ALIGN.CENTER)
 
 # Save
-outpath = "/Users/dolphin/Downloads/Claude/movesignal-ai/DistrictPilot_AI_Hackathon.pptx"
+outpath = "/Users/pizza/districtpilot-ai/deliverables/DistrictPilot_AI_Hackathon_Final.pptx"
 prs.save(outpath)
 print(f"Saved to {outpath}")
 print(f"Slides: {len(prs.slides)}")

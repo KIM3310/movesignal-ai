@@ -31,11 +31,11 @@ Data Sources
   Public: 공휴일 + 연령구조 + 관광수요 + 상권변화
                          |
                          v
-DT_FEATURE_MART_V2 (Dynamic Table, 1h lag)
+DT_FEATURE_MART (Dynamic Table, 1h lag) -> FEATURE_MART_V2
   3구 x 60개월, 50+ features
          |                    |
          v                    v
-  ML FORECAST            Semantic View (DISTRICTPILOT_SV)
+  DISTRICTPILOT_FORECAST_V2  Semantic View (DISTRICTPILOT_SV)
   Ablation A->E          Cortex Analyst (VQR 10개)
   Feature Importance     Cortex Search (정책 문서)
          |                    |
@@ -44,16 +44,22 @@ DT_FEATURE_MART_V2 (Dynamic Table, 1h lag)
   Allocation | Analysis | AI Agent | Simulation | Ops/Trust
 ```
 
+Current live alignment:
+
+- Feature pipeline: `DT_FEATURE_MART` -> `FEATURE_MART_V2`
+- Final production model: `DISTRICTPILOT_FORECAST_V2`
+- `AJD` is optional and not required for the base demo flow
+
 ## Evidence Chain
 
 | Step | Snowflake Object | Evidence |
 |------|------------------|----------|
-| Forecast | `DISTRICTPILOT_FORECAST` | 3구 x 3개월 예측, MAPE < 10%, 95% CI |
+| Forecast | `DISTRICTPILOT_FORECAST_V2` | 3구 예측 + evaluation metrics + feature importance |
 | Feature Importance | `FEATURE_IMPORTANCE` + `ABLATION_RESULTS` | Top-5 기여도, ablation 전후 MAPE 개선 |
 | Semantic View | `DISTRICTPILOT_SV` | VQR 10개, SQL 규칙 13개, synonym 100+, 카테고리 7개 |
 | Search Grounding | `CORTEX.SEARCH()` | 외부 컨텍스트로 hallucination 방지 |
-| AI Structured Output | `AI_COMPLETE` | JSON action card (priority/budget_pct/confidence) |
-| Refresh State | `DYNAMIC_TABLE_REFRESH_HISTORY` | 실시간 LAG_SEC, 갱신 이력, query_tag 감사 |
+| AI Structured Output | `AI_COMPLETE()` + `SNOWFLAKE.CORTEX.COMPLETE()` | JSON action card (priority/budget_pct/confidence) |
+| Refresh State | `V_APP_HEALTH` | 실시간 LAG_SEC, task 상태, query_tag 감사 |
 
 ## Scoring Coverage
 
@@ -72,6 +78,7 @@ DT_FEATURE_MART_V2 (Dynamic Table, 1h lag)
 |--------|------|-------|
 | **SPH** | 유동인구 (거주/직장/방문), 카드소비 (8 카테고리), 자산/소득 | 법정동 -> 구 집계 |
 | **Richgo** | 아파트 매매/전세 시세, 인구이동 (전입/전출/순이동) | 시군구 |
+| **AJD (Optional)** | 통신 가입 / 렌탈 / 마케팅 / CS | 별도 통합 시 사용 |
 
 ### External (Public Open Data)
 | Source | Data | License |
@@ -107,6 +114,12 @@ districtpilot-ai/
 |-- evidence_chain_slide.md         # Evidence Chain 슬라이드 + 30초 멘트
 |-- DATA_SOURCES_AND_LICENSES.md    # 데이터 소스 + 라이선스
 |-- SUBMISSION_CHECKLIST.md         # 제출 체크리스트
+|-- FINAL_PRE_SUBMISSION_RUNBOOK.md # 제출 직전 15분 런북
+|-- LIVE_SUBMISSION_NOTES.md        # 라이브 오브젝트 정합성 기준
+|-- 12_final_precheck.sql           # Snowsight 최종 점검 SQL
+|-- 13_live_app_compatibility_patch.sql # 라이브 앱 호환 패치
+|-- generate_pptx.py                # 최종 PPT 생성 스크립트
+|-- build_demo_video.py             # 한국어 TTS 데모 영상 생성 스크립트
 ```
 
 ## Snowflake Objects
@@ -115,8 +128,8 @@ districtpilot-ai/
 |--------|------|-------------|
 | `FEATURE_MART_V2` | Table | 확장 Feature Mart (50+ features) |
 | `DT_FEATURE_MART` | Dynamic Table | 자동 갱신 (1h lag) |
-| `DISTRICTPILOT_FORECAST` | ML Model | Ablation 최종 모델 (외생변수 포함) |
-| `ABLATION_RESULTS` | Table | 5 모델 MAPE/SMAPE/MAE 비교 |
+| `DISTRICTPILOT_FORECAST_V2` | ML Model | Ablation 최종 모델 (외생변수 포함) |
+| `ABLATION_RESULTS` | Table/View | 5 모델 MAPE/SMAPE/MAE 비교 |
 | `DISTRICTPILOT_SV` | Semantic View | Cortex Analyst용 비즈니스 메트릭 (VQR 10개) |
 | `DISTRICTPILOT_SEARCH_SVC` | Cortex Search | 정책/룰북 문서 검색 |
 | `V_APP_HEALTH` | View | 운영 상태 모니터링 |
@@ -155,8 +168,25 @@ CREATE STAGE IF NOT EXISTS DISTRICTPILOT_AI.ANALYTICS.STREAMLIT_STAGE
 -- 5. Operations
 07_dynamic_tables_tasks.sql
 
--- 6. Deploy Streamlit
+-- 6. Optional live hardening
+12_final_precheck.sql
+13_live_app_compatibility_patch.sql
+
+-- 7. Deploy Streamlit
 streamlit_app_v7.py
+```
+
+## Submission Artifacts
+
+- Final PPT: `deliverables/DistrictPilot_AI_Hackathon_Final.pptx`
+- Narrated demo video: `deliverables/DistrictPilot_AI_Demo_Narrated.mp4`
+- Source ZIP: `deliverables/DistrictPilot_AI_Submission.zip`
+
+To regenerate the presentation and video locally:
+
+```bash
+python3 generate_pptx.py
+python3 build_demo_video.py
 ```
 
 ## Key Differentiators
