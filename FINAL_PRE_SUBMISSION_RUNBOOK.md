@@ -27,10 +27,10 @@ Run [`12_final_precheck.sql`](12_final_precheck.sql) in Snowsight and confirm:
 
 Open the app and verify all five tabs:
 
-- `Allocation`: next-month allocation, overlay chart, ablation chart
-- `Analysis`: KPI cards, age/tourism/commercial signals, feature importance
-- `AI Agent`: one Korean prompt returns structured answer
-- `Simulation`: slider comparison and AI comment both work
+- `Capture Plan`: next-month capture intensity, overlay chart, ablation chart
+- `Move-in Signals`: move-in / spending / tourism / commercial signals, feature importance
+- `AI Playbook`: one Korean prompt returns structured answer
+- `Scenario Lab`: slider comparison and AI comment both work
 - `Ops / Trust`: health evidence and semantic-view validation display
 - app banner shows the live Feature Mart and Forecast model names you are actually using
 
@@ -55,21 +55,21 @@ Confirm the following are ready:
 
 If time is short or a screen is slow, keep this order:
 
-1. `Allocation`
-2. `Analysis`
-3. `AI Agent`
+1. `Capture Plan`
+2. `Move-in Signals`
+3. `AI Playbook`
 4. `Ops / Trust`
-5. `Simulation`
+5. `Scenario Lab`
 
 This sequence maximizes judging evidence even if you must skip one tab.
 
 ## Judge-Facing One-Liners
 
-- Creativity: "We did not stop at prediction; we turned forecast into an actioning agent."
+- Creativity: "We did not stop at prediction; we turned move-in signals into an actioning agent."
 - Snowflake depth: "Marketplace, ML Forecast, Semantic View, Cortex, Dynamic Tables, Tasks, and Streamlit all run in one account."
 - AI rigor: "Ablation and feature-importance prove why the recommendation exists."
-- Realism: "The app shows freshness, governance, and operating cost, not just charts."
-- Presentation: "One engine serves both private rental allocation and public resource planning."
+- Realism: "The app shows freshness, governance, operating constraints, and cost, not just charts."
+- Presentation: "One engine connects move-in detection, recommendation, and operator action."
 
 ## Final Rule
 

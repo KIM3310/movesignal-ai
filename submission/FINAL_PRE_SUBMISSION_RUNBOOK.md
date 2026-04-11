@@ -21,7 +21,6 @@ Run [`12_final_precheck.sql`](12_final_precheck.sql) in Snowsight and confirm:
 - `DISTRICTPILOT_SV` validates successfully
 - `V_APP_HEALTH` returns rows
 - Streamlit app is listed in `SHOW STREAMLITS`
-- for a judge-facing smoke test, run [`14_judge_fastpath.sql`](14_judge_fastpath.sql) right after and keep that Snowsight tab open
 
 ### 2. Streamlit app click-through
 
@@ -32,7 +31,6 @@ Open the app and verify all five tabs:
 - `AI Agent`: one Korean prompt returns structured answer
 - `Simulation`: slider comparison and AI comment both work
 - `Ops / Trust`: health evidence and semantic-view validation display
-- app banner shows the live Feature Mart and Forecast model names you are actually using
 
 ### 3. Submission package
 

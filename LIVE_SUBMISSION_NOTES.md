@@ -34,4 +34,4 @@ If an older deployed build still breaks on those names, use [`13_live_app_compat
 
 ## Judge Message
 
-DistrictPilot AI is not only a forecasting dashboard. It combines Snowflake Marketplace data, ML Forecast, Dynamic Tables, Tasks, Semantic View, Cortex Search, Cortex completion, and Streamlit into a single operational decision system.
+DistrictPilot AI is not only a forecasting dashboard. It combines Snowflake Marketplace data, ML Forecast, Dynamic Tables, Tasks, Semantic View, Cortex Search, Cortex completion, and Streamlit into a single move-in driven home-service decision system.
