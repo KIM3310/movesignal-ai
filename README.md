@@ -84,7 +84,7 @@ Current live alignment:
 | **기술 구현** | **25%** | Marketplace 3사 + ML FORECAST(외생변수) + Ablation 5모델 + AI_COMPLETE + DT + Tasks + Streamlit = 8개 Snowflake 기능 통합 |
 | **솔루션 완성도** | **20%** | 데이터 수집 → 예측 → 액션 추천 → 시뮬레이션 → 운영 모니터링 End-to-End 완결 |
 | **데이터 분석 & 인사이트** | **20%** | Feature Importance(외생변수 기여도) + Ablation(5모델 MAPE 비교) + 구별 인사이트 콜아웃 |
-| **발표 품질** | **10%** | 5탭 라이브 데모 + Judge Fast Path + Q&A 7문항 대비 |
+| **발표 품질** | **10%** | 5탭 라이브 데모 + Judge Fast Path + QQ&A 7문항A 9문항 대비 |
 
 **보너스 포인트**: Snowpark, Cortex AI (Complete + Search), Marketplace (SPH + Richgo + AJD), Streamlit 모두 활용
 
