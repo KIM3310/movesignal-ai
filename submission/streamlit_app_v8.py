@@ -506,8 +506,19 @@ def build_context_json(
                 ),
             }
 
+    import math
+
+    def _clean_nan(obj):
+        if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+            return None
+        if isinstance(obj, dict):
+            return {k: _clean_nan(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [_clean_nan(i) for i in obj]
+        return obj
+
     return json.dumps(
-        {
+        _clean_nan({
             "scope": scope,
             "next_month_allocation": alloc_payload,
             "latest_snapshot": snap_payload,
@@ -516,7 +527,7 @@ def build_context_json(
             "demographics": demo_info,
             "tourism": tourism_info,
             "commercial_stability": commercial_info,
-        },
+        }),
         ensure_ascii=False,
         indent=2,
     )
@@ -567,8 +578,8 @@ CONTEXT:
                     return {"structured_output": parsed}
                 except Exception:
                     pass
-            return {"structured_output": {"answer": raw}}
-        return {"structured_output": {"answer": str(raw)}}
+            return {"structured_output": {"answer": raw, "recommended_district": "-", "allocation_pct": None, "drivers": [], "risk": "", "next_action": ""}}
+        return {"structured_output": {"answer": str(raw), "recommended_district": "-", "allocation_pct": None, "drivers": [], "risk": "", "next_action": ""}}
     except Exception as e:
         return _fallback_complete(prompt)
 
