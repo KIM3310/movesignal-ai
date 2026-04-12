@@ -1,5 +1,5 @@
 """
-DistrictPilot AI v8 — Competition-Winning Snowflake-native Move-in Demand Engine
+DistrictPilot AI v8 — Snowflake-native Move-in Demand Engine
 서초/영등포/중구 전입·이사 기반 홈서비스 수요 오케스트레이션 에이전트
 
 Architecture:

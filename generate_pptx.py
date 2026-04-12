@@ -459,5 +459,3 @@ add_text(s, "Q & A", 0.5, 5.8, 12.3, 0.8, size=36, bold=True, color=LIGHT_GRAY, 
 # Save
 outpath = "/Users/pizza/districtpilot-ai/deliverables/DistrictPilot_AI_Hackathon_Final.pptx"
 prs.save(outpath)
-print(f"Saved to {outpath}")
-print(f"Slides: {len(prs.slides)}")

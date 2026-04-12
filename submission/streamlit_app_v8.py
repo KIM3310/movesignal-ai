@@ -1,6 +1,6 @@
 """
-DistrictPilot AI v8 — Competition-Winning Snowflake-native Move-in Demand Engine
-서초/영등포/중구 전입·이사 기반 홈서비스 수요 오케스트레이션 에이전트
+DistrictPilot AI — Snowflake-native Move-in Demand Engine
+서초/영등포/중구 전입·이사 기반 홈서비스 수요 예측 에이전트
 
 Architecture:
   FEATURE_MART_V2 (holiday + demographics + tourism + commercial)
@@ -13,13 +13,12 @@ Architecture:
 
 Tabs: Capture Plan | Move-in Signals | AI Playbook | Scenario Lab | Ops/Trust
 
-v8 changes:
+Features:
   - Confidence interval bands on forecast chart
   - Ablation MAPE improvement delta metrics
   - Cortex Search citation display in AI Playbook
   - Per-district insight callouts in Move-in Signals
   - Deviation alerts in Scenario Lab
-  - SQL injection fix in fallback LLM call
 """
 import json
 from typing import List, Tuple
@@ -126,9 +125,9 @@ st.markdown("""
                 font-size:1.1rem;padding:6px 14px;border-radius:8px;letter-spacing:-.02em;">DP</div>
     <div>
         <div style="font-size:1.3rem;font-weight:700;color:#1E2761;letter-spacing:-.02em;line-height:1.2;">
-            DistrictPilot AI <span style="font-size:.75rem;color:#29B5E8;font-weight:500;">v8</span>
+            DistrictPilot AI
         </div>
-        <div style="font-size:.8rem;color:#888;margin-top:1px;">서초/영등포/중구 전입·이사 수요 오케스트레이션</div>
+        <div style="font-size:.8rem;color:#888;margin-top:1px;">서초/영등포/중구 전입·이사 수요 예측</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -136,7 +135,7 @@ st.markdown("""
 try:
     session.sql(
         "ALTER SESSION SET QUERY_TAG = "
-        "'{\"app\":\"districtpilot_ai\",\"version\":\"v8\",\"entrypoint\":\"app_init\"}'"
+        "'{\"app\":\"districtpilot_ai\",\"version\":\"1.0\",\"entrypoint\":\"app_init\"}'"
     ).collect()
 except Exception:
     pass
@@ -1315,7 +1314,7 @@ with tabs[4]:
     try:
         session.sql(
             "ALTER SESSION SET QUERY_TAG = "
-            "'{\"app\":\"districtpilot_ai\",\"version\":\"v8\",\"tab\":\"ops_trust\"}'"
+            "'{\"app\":\"districtpilot_ai\",\"version\":\"1.0\",\"tab\":\"ops_trust\"}'"
         ).collect()
     except Exception:
         pass
@@ -1475,7 +1474,7 @@ with tabs[4]:
         """
 - **Streamlit 실행**: Owner's rights (소유자 권한 + 소유자 Warehouse)
 - **Cortex Analyst**: Semantic View 접근 권한 기반 (ACCOUNTADMIN, 커스텀 롤 확장 가능)
-- **Query Tag**: `{"app":"districtpilot_ai","version":"v8"}`
+- **Query Tag**: `{"app":"districtpilot_ai","version":"1.0"}`
 - **데이터 격리**: Marketplace 데이터 -> 내부 STG 테이블 복제 (원본 비노출)
 """
     )
@@ -1551,8 +1550,8 @@ with tabs[4]:
     st.divider()
     st.subheader("확장 가능성")
     st.caption("같은 예측 엔진으로 공공 시장까지 확장 가능합니다.")
-    dual_col1, dual_col2 = st.columns(2)
-    with dual_col1:
+    expand_col1, expand_col2 = st.columns(2)
+    with expand_col1:
         st.markdown("**현재: 홈서비스 사업자**")
         st.markdown(
             """
@@ -1563,7 +1562,7 @@ with tabs[4]:
 - CS 대응과 월간 캠페인 조정
 """
         )
-    with dual_col2:
+    with expand_col2:
         st.markdown("**확장: 자치구 행정 (Next)**")
         st.markdown(
             """

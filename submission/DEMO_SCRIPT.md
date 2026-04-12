@@ -146,7 +146,7 @@
 ### [9:00-10:00] 다음 단계 (슬라이드 11-13)
 
 > 1. AJD 완전 통합 → 상품/채널 수준 추천
-> 2. Cortex Agent 오케스트레이션
+> 2. Cortex Agent 수요 예측
 > 3. Managed MCP Server
 > 4. Native App → Marketplace 배포
 
