@@ -28,6 +28,6 @@ USE SCHEMA ANALYTICS;
 
 CREATE STAGE IF NOT EXISTS STREAMLIT_STAGE DIRECTORY = (ENABLE = TRUE);
 
-ALTER SESSION SET QUERY_TAG = '{"app":"districtpilot_ai","module":"master_deploy","version":"v8"}';
+ALTER SESSION SET QUERY_TAG = '{"app":"districtpilot_ai","module":"master_deploy","version":"1.0"}';
 
 SELECT 'STEP 0 COMPLETE: Environment ready' AS STATUS;
