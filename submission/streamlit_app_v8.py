@@ -1096,8 +1096,12 @@ with tabs[2]:
 
     payload = st.session_state.get("ai_payload")
     if payload:
-        structured = payload.get("structured_output", payload)
-        usage = payload.get("usage", {})
+        structured = payload.get("structured_output", payload) if isinstance(payload, dict) else payload
+        if isinstance(structured, list):
+            structured = structured[0] if structured else {}
+        if not isinstance(structured, dict):
+            structured = {"answer": str(structured)}
+        usage = payload.get("usage", {}) if isinstance(payload, dict) else {}
 
         st.subheader("AI Recommendation")
         st.write(structured.get("answer", "응답이 없습니다."))
