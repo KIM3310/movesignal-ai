@@ -580,7 +580,7 @@ CONTEXT:
                     pass
             return {"structured_output": {"answer": raw, "recommended_district": "-", "allocation_pct": None, "drivers": [], "risk": "", "next_action": ""}}
         return {"structured_output": {"answer": str(raw), "recommended_district": "-", "allocation_pct": None, "drivers": [], "risk": "", "next_action": ""}}
-    except Exception as e:
+    except Exception:
         return _fallback_complete(prompt)
 
 

@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-py:
+    name: Python lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install ruff + syntax deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff==0.9.0
+
+      - name: Ruff lint (Python scripts only)
+        run: |
+          ruff check \
+            build_demo_video.py \
+            generate_pptx.py \
+            streamlit_app_v8.py
+
+      - name: Python syntax check (compile-only)
+        run: |
+          python -m compileall -q \
+            build_demo_video.py \
+            generate_pptx.py \
+            streamlit_app_v8.py
+
+  lint-sql:
+    name: SQL syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install sqlfluff
+        run: |
+          python -m pip install --upgrade pip
+          pip install "sqlfluff==3.2.5"
+
+      - name: sqlfluff parse (Snowflake dialect)
+        run: |
+          sqlfluff parse --dialect snowflake --nofail *.sql || true
+          # Non-failing: many files use Snowflake-specific DDL and Cortex
+          # extensions that sqlfluff cannot yet fully model. We still run
+          # it so unrelated syntax regressions surface in PR diffs.

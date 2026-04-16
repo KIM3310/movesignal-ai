@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import math
 import os
 import subprocess
 import textwrap
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Sequence, Tuple
+from typing import List, Sequence, Tuple
 
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from moviepy import AudioFileClip, ImageClip, concatenate_videoclips, vfx

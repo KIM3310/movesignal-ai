@@ -1,9 +1,8 @@
 """Generate DistrictPilot AI Hackathon PPT (final deck, dark navy theme)."""
 from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
+from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
-import os
+from pptx.enum.text import PP_ALIGN
 
 prs = Presentation()
 prs.slide_width = Inches(13.333)
